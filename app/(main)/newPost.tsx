@@ -1,0 +1,253 @@
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import React, { useRef, useState } from "react";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import Header from "@/components/Header";
+import Avatar from "@/components/Avatar";
+import { hp, wp } from "@/helpers/commons";
+import { theme } from "@/constants/themes";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserType } from "@/types";
+import RichTextEditor from "@/components/RichTextEditor";
+import { useRouter } from "expo-router";
+import Icon from "@/assets/icons";
+import Button from "@/components/Button";
+import * as ImagePicker from "expo-image-picker";
+import { getSupabaseFileUrl } from "@/service/imageService";
+import { ImagePickerAsset } from "expo-image-picker";
+import { ResizeMode, Video } from "expo-av";
+import { createOrUpdatePost } from "@/service/postService";
+import { RichEditor } from "react-native-pell-rich-editor";
+
+const newPost = () => {
+  const { user: userData } = useAuth();
+  const user = userData as UserType;
+  const bodyRef = useRef<string>("");
+  const editorRef = useRef<RichEditor | null>(null);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<ImagePickerAsset | null>(null);
+
+  const onPick = async (isImage: boolean) => {
+    let mediaConfig: any = {
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    };
+
+    // isImage가 false면 비디오
+    if (!isImage) {
+      mediaConfig = {
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+      };
+    }
+    let result = await ImagePicker.launchImageLibraryAsync(mediaConfig);
+
+    if (!result.canceled) {
+      setFile(result.assets[0]);
+    }
+  };
+
+  const isLocalFile = (file: any) => {
+    if (typeof file == "object") return true;
+  };
+
+  const getFileType = (file: any) => {
+    if (!file) return null;
+    if (isLocalFile(file)) {
+      return file.type;
+    }
+
+    // check image or video for remote file
+    if (file.includes("postImage")) {
+      return "Image";
+    }
+    return "Video";
+  };
+
+  const getFileUri = (file: any) => {
+    if (!file) return null;
+    if (isLocalFile(file)) {
+      return file.uri;
+    }
+    return getSupabaseFileUrl(file)?.uri;
+  };
+
+  const onSubmit = async () => {
+    if (!bodyRef.current && !file) {
+      Alert.alert("게시글 작성 실패", "내용을 입력해주세요.");
+      return;
+    }
+
+    let data = {
+      file: file,
+      body: bodyRef.current,
+      userId: user?.id,
+    };
+    setLoading(true);
+    const result = await createOrUpdatePost(data);
+    setLoading(false);
+    if (result.success) {
+      setFile(null);
+      bodyRef.current = "";
+      editorRef.current?.setContentHTML("");
+      router.back();
+    } else {
+      Alert.alert("Post", result.msg);
+    }
+  };
+
+  return (
+    <ScreenWrapper bg='white'>
+      <View style={styles.container}>
+        <Header title='게시글 작성' />
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          {/* avatar */}
+          <View style={styles.header}>
+            <Avatar
+              uri={user?.image || ""}
+              size={hp(6)}
+              rounded={theme.radius.xl}
+            />
+            <View style={{ gap: 3 }}>
+              <Text style={styles.userName}>{user?.name}</Text>
+              <Text style={styles.publicText}>Public</Text>
+            </View>
+          </View>
+          <View style={styles.textEditor}>
+            <RichTextEditor
+              editorRef={editorRef}
+              onChange={(body) => (bodyRef.current = body)}
+            />
+          </View>
+
+          {file && (
+            <View style={styles.file}>
+              {getFileType(file) == "video" ? (
+                <Video
+                  source={{ uri: getFileUri(file) }}
+                  resizeMode={ResizeMode.COVER}
+                  useNativeControls
+                  isLooping
+                  style={{ flex: 1 }}
+                />
+              ) : (
+                <Image
+                  source={{ uri: getFileUri(file) }}
+                  resizeMode='contain'
+                  style={{ flex: 1 }}
+                />
+              )}
+              <Pressable style={styles.closeIcon} onPress={() => setFile(null)}>
+                <Icon name='trash-outline' size={22} color='white' />
+              </Pressable>
+            </View>
+          )}
+
+          <View style={styles.media}>
+            <Text style={styles.addImageText}>Add to your post</Text>
+            <View style={styles.mediaIcons}>
+              <Pressable onPress={() => onPick(true)}>
+                <Icon
+                  name='image-outline'
+                  size={24}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+              <Pressable onPress={() => onPick(false)}>
+                <Icon
+                  name='videocam-outline'
+                  size={24}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+        <Button
+          buttonStyle={{ height: hp(6.2) }}
+          title='Post'
+          loading={loading}
+          hasShadow={false}
+          onPress={onSubmit}
+        />
+      </View>
+    </ScreenWrapper>
+  );
+};
+
+export default newPost;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: wp(4),
+    marginBottom: 20,
+    gap: 20,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  userName: {
+    fontSize: hp(2),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.text,
+  },
+  publicText: {
+    fontSize: hp(1.7),
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.textLight,
+  },
+  scrollView: {
+    gap: 20,
+  },
+  textEditor: {
+    position: "relative",
+    // height: hp(33),
+  },
+  file: {
+    width: "100%",
+    height: hp(30),
+    borderRadius: theme.radius.lg,
+    borderCurve: "continuous",
+    overflow: "hidden",
+  },
+  media: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1.5,
+    padding: 10,
+    paddingHorizontal: 18,
+    borderRadius: theme.radius.xxl,
+    borderCurve: "continuous",
+    borderColor: theme.colors.gray,
+  },
+  mediaIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  addImageText: {
+    fontSize: hp(1.8),
+  },
+  closeIcon: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    padding: 5,
+    backgroundColor: theme.colors.rose,
+    borderRadius: theme.radius.lg,
+  },
+});
