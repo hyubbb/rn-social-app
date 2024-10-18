@@ -67,3 +67,12 @@ export type PostType = {
   created_at?: string;
   id?: string;
 };
+
+export type PostWithUser = {
+  body: string;
+  created_at: string;
+  file: ImagePickerAsset | string | null;
+  id: string;
+  user: UserType;
+  userId: string;
+};

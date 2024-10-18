@@ -1,13 +1,13 @@
 import { supabase } from "@/lib/supabase";
 import { uploadImage } from "./imageService";
-import { PostType } from "@/types";
+import { PostType, PostWithUser } from "@/types";
 
 export const createOrUpdatePost = async (post: any) => {
   try {
     // upload image
     if (post.file && typeof post.file === "object") {
       let isImage = post?.file?.type == "image";
-      let folderName = isImage ? "postImages" : "postVideo";
+      let folderName = isImage ? "postImages" : "postVideos";
       let fileResult = await uploadImage(folderName, post?.file?.uri, isImage);
       if (fileResult.success) post.file = fileResult.data;
       else {
@@ -30,10 +30,27 @@ export const createOrUpdatePost = async (post: any) => {
   }
 };
 
-export const getPosts = async () => {
-  const { data, error } = await supabase.from("posts").select("*");
-  if (error) {
-    throw error;
+export const fetchPosts = async (
+  limit = 10
+): Promise<{
+  success: boolean;
+  msg: string;
+  data: PostWithUser[];
+}> => {
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*, user:users(id, name, image)")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, msg: "fetchPosts 성공", data };
+  } catch (error) {
+    console.log("fetchPost 오류", error);
+    return { success: false, msg: "fetchPost 오류", data: [] };
   }
-  return data;
 };

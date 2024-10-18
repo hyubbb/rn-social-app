@@ -6,7 +6,7 @@ import { Image } from "expo-image";
 import { getUserImageSrc } from "@/service/imageService";
 
 type AvatarProps = {
-  uri: string;
+  uri: string | null;
   size?: number;
   rounded?: number;
   style?: any;

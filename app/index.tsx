@@ -1,9 +1,14 @@
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, Button, LogBox } from "react-native";
 import React from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { useRouter } from "expo-router";
 import Loading from "@/components/Loading";
 
+LogBox.ignoreLogs([
+  "Warning: TRenderEngineProvider:",
+  "Warning: MemoizedTNodeRenderer:",
+  "Warning: TNodeChildrenRenderer:",
+]);
 const index = () => {
   const router = useRouter();
   return (

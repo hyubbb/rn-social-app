@@ -1,10 +1,14 @@
 import {
   Alert,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import React, { useRef, useState } from "react";
@@ -31,6 +35,7 @@ const newPost = () => {
   const user = userData as UserType;
   const bodyRef = useRef<string>("");
   const editorRef = useRef<RichEditor | null>(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<ImagePickerAsset | null>(null);
@@ -106,81 +111,121 @@ const newPost = () => {
     }
   };
 
+  const onPress = () => {
+    editorRef.current?.blurContentEditor();
+  };
+
+  const handleEditorFocus = () => {
+    // ScrollView를 최상단으로 스크롤
+    scrollViewRef.current?.scrollTo({ y: 350, animated: true });
+  };
+
   return (
     <ScreenWrapper bg='white'>
-      <View style={styles.container}>
-        <Header title='게시글 작성' />
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          {/* avatar */}
-          <View style={styles.header}>
-            <Avatar
-              uri={user?.image || ""}
-              size={hp(6)}
-              rounded={theme.radius.xl}
-            />
-            <View style={{ gap: 3 }}>
-              <Text style={styles.userName}>{user?.name}</Text>
-              <Text style={styles.publicText}>Public</Text>
-            </View>
-          </View>
-          <View style={styles.textEditor}>
-            <RichTextEditor
-              editorRef={editorRef}
-              onChange={(body) => (bodyRef.current = body)}
-            />
-          </View>
-
-          {file && (
-            <View style={styles.file}>
-              {getFileType(file) == "video" ? (
-                <Video
-                  source={{ uri: getFileUri(file) }}
-                  resizeMode={ResizeMode.COVER}
-                  useNativeControls
-                  isLooping
-                  style={{ flex: 1 }}
+      <TouchableWithoutFeedback onPress={onPress}>
+        <View style={styles.container}>
+          <Header title='게시글 작성' />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+          >
+            <ScrollView
+              ref={scrollViewRef}
+              contentContainerStyle={styles.scrollView}
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps='handled'
+            >
+              {/* avatar */}
+              <View style={styles.header}>
+                <Avatar
+                  uri={user?.image || ""}
+                  size={hp(6)}
+                  rounded={theme.radius.xl}
                 />
-              ) : (
-                <Image
-                  source={{ uri: getFileUri(file) }}
-                  resizeMode='contain'
-                  style={{ flex: 1 }}
-                />
+                <View style={{ gap: 3 }}>
+                  <Text style={styles.userName}>{user?.name}</Text>
+                  <Text style={styles.publicText}>Public</Text>
+                </View>
+              </View>
+              {file && (
+                <View style={styles.file}>
+                  {getFileType(file) == "video" ? (
+                    <Video
+                      source={{ uri: getFileUri(file) }}
+                      resizeMode={ResizeMode.COVER}
+                      useNativeControls
+                      isLooping
+                      style={{ flex: 1 }}
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: getFileUri(file) }}
+                      resizeMode='contain'
+                      style={{ flex: 1 }}
+                    />
+                  )}
+                  <Pressable
+                    style={styles.closeIcon}
+                    onPress={() => setFile(null)}
+                  >
+                    <Icon name='trash-outline' size={22} color='white' />
+                  </Pressable>
+                </View>
               )}
-              <Pressable style={styles.closeIcon} onPress={() => setFile(null)}>
-                <Icon name='trash-outline' size={22} color='white' />
-              </Pressable>
-            </View>
-          )}
+              <View style={styles.media}>
+                <View style={styles.mediaIcons}>
+                  <Pressable
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      borderRightWidth: 1,
+                      borderColor: theme.colors.gray,
+                    }}
+                    onPress={() => onPick(true)}
+                  >
+                    <Icon
+                      name='image-outline'
+                      size={40}
+                      color={theme.colors.text}
+                    />
+                  </Pressable>
+                  <Pressable
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={() => onPick(false)}
+                  >
+                    <Icon
+                      name='videocam-outline'
+                      size={40}
+                      color={theme.colors.text}
+                    />
+                  </Pressable>
+                </View>
+              </View>
 
-          <View style={styles.media}>
-            <Text style={styles.addImageText}>Add to your post</Text>
-            <View style={styles.mediaIcons}>
-              <Pressable onPress={() => onPick(true)}>
-                <Icon
-                  name='image-outline'
-                  size={24}
-                  color={theme.colors.text}
+              <View style={styles.textEditor}>
+                <RichTextEditor
+                  editorRef={editorRef}
+                  onChange={(body) => (bodyRef.current = body)}
+                  onFocus={handleEditorFocus}
                 />
-              </Pressable>
-              <Pressable onPress={() => onPick(false)}>
-                <Icon
-                  name='videocam-outline'
-                  size={24}
-                  color={theme.colors.text}
-                />
-              </Pressable>
-            </View>
-          </View>
-        </ScrollView>
-        <Button
-          buttonStyle={{ height: hp(6.2) }}
-          title='Post'
-          loading={loading}
-          hasShadow={false}
-          onPress={onSubmit}
-        />
-      </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+          <Button
+            buttonStyle={{ height: hp(6.2) }}
+            title='Post'
+            loading={loading}
+            hasShadow={false}
+            onPress={onSubmit}
+          />
+        </View>
+      </TouchableWithoutFeedback>
     </ScreenWrapper>
   );
 };

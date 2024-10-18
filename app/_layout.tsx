@@ -4,7 +4,13 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/service/userService";
 import { SupabaseUser } from "@/types";
+import { LogBox } from "react-native";
 
+LogBox.ignoreLogs([
+  "Warning: TRenderEngineProvider:",
+  "Warning: MemoizedTNodeRenderer:",
+  "Warning: TNodeChildrenRenderer:",
+]);
 const _layout = () => {
   return (
     <AuthProvider>

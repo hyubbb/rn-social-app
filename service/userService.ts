@@ -14,7 +14,7 @@ export const getUserData = async (userId: string) => {
     return { success: true, data };
   } catch (error: any) {
     console.log("error : ", error);
-    return { success: false, msg: error.message };
+    return { success: false, msg: error.message, data: {} };
   }
 };
 

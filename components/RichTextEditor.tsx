@@ -1,6 +1,6 @@
 import { theme } from "@/constants/themes";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableWithoutFeedback, View } from "react-native";
 import {
   actions,
   RichEditor,
@@ -9,48 +9,53 @@ import {
 const RichTextEditor = ({
   editorRef,
   onChange,
+  onFocus,
 }: {
   editorRef: React.MutableRefObject<RichEditor | null>;
   onChange: (body: string) => void;
+  onFocus: () => void;
 }) => {
   return (
-    <View style={{ minHeight: 285 }}>
-      <RichToolbar
-        actions={[
-          actions.setStrikethrough,
-          actions.removeFormat,
-          actions.setBold,
-          actions.setItalic,
-          actions.blockquote,
-          actions.alignLeft,
-          actions.alignCenter,
-          actions.alignRight,
-          actions.code,
-          actions.line,
-        ]}
-        iconMap={{
-          [actions.heading1]: ({ tintColor }: { tintColor: string }) => (
-            <Text style={{ color: tintColor }}>H1</Text>
-          ),
-          [actions.heading4]: ({ tintColor }: { tintColor: string }) => (
-            <Text style={{ color: tintColor }}>H4</Text>
-          ),
-        }}
-        style={styles.richBar}
-        flatContainerStyle={styles.flatStyle}
-        selectedIconTintColor={theme.colors.primaryDark}
-        editor={editorRef}
-        disabled={false}
-      />
+    <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+      <View style={{ minHeight: 285 }}>
+        <RichToolbar
+          actions={[
+            actions.setStrikethrough,
+            actions.removeFormat,
+            actions.setBold,
+            actions.setItalic,
+            actions.blockquote,
+            actions.alignLeft,
+            actions.alignCenter,
+            actions.alignRight,
+            actions.code,
+            actions.line,
+          ]}
+          iconMap={{
+            [actions.heading1]: ({ tintColor }: { tintColor: string }) => (
+              <Text style={{ color: tintColor }}>H1</Text>
+            ),
+            [actions.heading4]: ({ tintColor }: { tintColor: string }) => (
+              <Text style={{ color: tintColor }}>H4</Text>
+            ),
+          }}
+          style={styles.richBar}
+          flatContainerStyle={styles.flatStyle}
+          selectedIconTintColor={theme.colors.primaryDark}
+          editor={editorRef}
+          disabled={false}
+        />
 
-      <RichEditor
-        ref={editorRef}
-        containerStyle={styles.richEditor}
-        editorStyle={styles.contentStyle}
-        placeholder='내용을 입력해주세요.'
-        onChange={onChange}
-      />
-    </View>
+        <RichEditor
+          ref={editorRef}
+          containerStyle={styles.richEditor}
+          editorStyle={styles.contentStyle}
+          placeholder='내용을 입력해주세요.'
+          onChange={onChange}
+          onFocus={onFocus}
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

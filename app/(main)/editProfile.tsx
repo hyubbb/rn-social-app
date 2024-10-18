@@ -23,8 +23,10 @@ import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
 const EditProfile = () => {
+  // 사용자 인증 컨텍스트에서 사용자 데이터 가져오기
   const { user: userData, setUserData } = useAuth();
   const currentUser = userData as UserType;
+
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState({
     name: "",
@@ -33,6 +35,7 @@ const EditProfile = () => {
     bio: "",
     address: "",
   });
+
   const router = useRouter();
 
   // 초기 유저 데이터 설정
@@ -47,8 +50,8 @@ const EditProfile = () => {
       });
     }
   }, [currentUser]);
-  // 유저 이미지 소스 설정, 이미지가 없으면 기본 이미지 사용 설정함수
 
+  // 이미지 선택 함수
   const onPickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -62,6 +65,7 @@ const EditProfile = () => {
     }
   };
 
+  // 프로필 업데이트 함수
   const onSubmit = async () => {
     let userData = { ...user };
     let { name, phoneNumber, address, bio, image } = userData;
@@ -71,8 +75,9 @@ const EditProfile = () => {
       return;
     }
     setLoading(true);
+
+    // 이미지 업로드 처리
     if (typeof image === "string") {
-      // Supabase Storage에 이미지 업로드
       let imageRes = await uploadImage("profiles", image);
       if (imageRes.success) {
         userData.image = imageRes?.data as string;
@@ -81,12 +86,14 @@ const EditProfile = () => {
       }
     }
 
+    // 사용자 데이터 업데이트
     const { success, data, msg } = await updateUserData(
       currentUser.id,
       userData
     );
     setLoading(false);
 
+    // 업데이트 결과 처리
     if (success) {
       console.log("수정 Success : ", data);
       setUserData({ ...currentUser, ...(data as UserType) });
@@ -96,12 +103,13 @@ const EditProfile = () => {
     }
   };
 
-  //
+  // 이미지 소스 설정
   let imageSource =
     user.image && typeof user.image == "object"
       ? user.image
       : getUserImageSrc(user.image || "");
 
+  // 컴포넌트 렌더링
   return (
     <ScreenWrapper bg={"white"}>
       <View style={styles.container}>
@@ -179,6 +187,7 @@ const EditProfile = () => {
 
 export default EditProfile;
 
+// 스타일 정의
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: wp(4),
