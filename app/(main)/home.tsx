@@ -30,12 +30,15 @@ LogBox.ignoreLogs([
   "Warning: MemoizedTNodeRenderer:",
   "Warning: TNodeChildrenRenderer:",
 ]);
+var limit = 0;
 const Home = () => {
   const { user, setAuth } = useAuth();
   const userData = user as UserType;
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithUser[]>([]);
+  const [hasMore, setHasMore] = useState(true);
 
+  // let limit = 0;
   const handlePostEvent = async (payload: any) => {
     // payload 는 realtime 이벤트 발생시 받는 데이터
     if (payload.eventType == "INSERT") {
@@ -64,7 +67,7 @@ const Home = () => {
       )
       .subscribe();
 
-    getPosts();
+    // getPosts();
 
     return () => {
       supabase.removeChannel(postChannel);
@@ -72,8 +75,15 @@ const Home = () => {
   }, []);
 
   const getPosts = async () => {
-    let res = await fetchPosts();
+    if (!hasMore) return;
+    limit = limit + 4;
+    console.log(limit);
+    let res = await fetchPosts(limit);
     if (res.success) {
+      // 기존의 post갯수와 새로불러온 데이터의 갯수가 같으면 더이상의 업데이트가 존재하지 않는다는 것
+      if (posts.length == res.data.length) {
+        setHasMore(false);
+      }
       setPosts(res.data);
     }
   };
@@ -119,10 +129,21 @@ const Home = () => {
           renderItem={({ item }) => (
             <PostCard item={item} currentUser={userData} router={router} />
           )}
+          onEndReached={() => {
+            // 최하단에 도달시
+            getPosts();
+          }}
+          onEndReachedThreshold={0} // 최하단에 도달 범위
           ListFooterComponent={
-            <View style={{ marginVertical: posts.length == 0 ? 200 : 30 }}>
-              <Loading />
-            </View>
+            hasMore ? (
+              <View style={{ marginVertical: posts.length == 0 ? 200 : 30 }}>
+                <Loading />
+              </View>
+            ) : (
+              <View style={{ marginVertical: 30, marginTop: 10 }}>
+                <Text style={styles.noMore}>더 이상 게시글이 없습니다.</Text>
+              </View>
+            )
           }
         />
       </View>
@@ -154,4 +175,9 @@ const styles = StyleSheet.create({
     gap: 13,
   },
   listStyle: {},
+  noMore: {
+    fontSize: hp(2),
+    textAlign: "center",
+    color: theme.colors.text,
+  },
 });

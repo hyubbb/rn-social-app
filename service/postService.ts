@@ -43,7 +43,6 @@ export const fetchPosts = async (
       .select("*, user:users(id, name, image)")
       .order("created_at", { ascending: false })
       .limit(limit);
-
     if (error) {
       throw error;
     }
