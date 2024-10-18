@@ -68,6 +68,13 @@ export type PostType = {
   id?: string;
 };
 
+export type PostLike = {
+  id: string;
+  postId: string;
+  userId: string;
+  created_at: string;
+};
+
 export type PostWithUser = {
   body: string;
   created_at: string;
@@ -75,4 +82,5 @@ export type PostWithUser = {
   id: string;
   user: UserType;
   userId: string;
+  postLikes: PostLike[];
 };

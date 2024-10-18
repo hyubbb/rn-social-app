@@ -20,6 +20,20 @@ export const getSupabaseFileUrl = (filePath: string): any => {
   return null;
 };
 
+export const downloadFile = async (url: string) => {
+  try {
+    const { uri } = await FileSystem.downloadAsync(url, getLocalFilePath(url));
+    return uri;
+  } catch (error) {
+    console.log("downloadFile 오류", error);
+  }
+};
+
+export const getLocalFilePath = (filePath: string) => {
+  let fileName = filePath.split("/").pop();
+  return `${FileSystem.documentDirectory}${fileName}`;
+};
+
 /**
  * Supabase Storage에 이미지 업로드
  * @param folderName 폴더 이름

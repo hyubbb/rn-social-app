@@ -1,22 +1,30 @@
 import {
+  Alert,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
-import React from "react";
-import { PostWithUser, UserType } from "@/types";
+import React, { useEffect, useState } from "react";
+import { PostLike, PostWithUser, UserType } from "@/types";
 import { Router } from "expo-router";
-import { getSupabaseFileUrl } from "@/service/imageService";
+import {
+  downloadFile,
+  getLocalFilePath,
+  getSupabaseFileUrl,
+} from "@/service/imageService";
 import Avatar from "./Avatar";
 import { theme } from "@/constants/themes";
-import { hp } from "@/helpers/commons";
+import { hp, stripHtmlTags } from "@/helpers/commons";
 import moment from "moment";
 import Icon from "@/assets/icons";
 import RenderHtml from "react-native-render-html";
 import { Image } from "expo-image";
 import { ResizeMode, Video } from "expo-av";
+import { createPostLike, deletePostLike } from "@/service/postService";
+import Loading from "./Loading";
 
 const textStyle = {
   color: theme.colors.textLight,
@@ -47,6 +55,9 @@ const PostCard = ({
   hasShadow?: boolean;
 }) => {
   const { width } = useWindowDimensions();
+  const [likes, setLikes] = useState<PostLike[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const shadowStyle = {
     shadowOffset: {
       width: 0,
@@ -57,9 +68,65 @@ const PostCard = ({
     elevation: 1,
   };
 
-  const liked = true;
+  useEffect(() => {
+    setLikes(item?.postLikes);
+  }, []);
+
+  const openPostDetails = () => {
+    router.push({
+      pathname: "/postDetails",
+      params: {
+        postId: item?.id,
+      },
+    });
+  };
+
+  const onLike = async () => {
+    let data = {
+      userId: currentUser.id,
+      postId: item?.id,
+    };
+    if (liked) {
+      // 좋아요 취소
+      let updatedLikes = likes.filter((like) => like.userId !== currentUser.id);
+      setLikes([...updatedLikes]);
+      let res = await deletePostLike(data);
+      console.log("res", res);
+      if (!res.success) {
+        return Alert.alert("알림", "오류가 발생했습니다.");
+      }
+    } else {
+      // 좋아요 추가
+      let res = await createPostLike(data);
+      setLikes([...likes, res.data]);
+      console.log("res", res);
+      if (!res.success) {
+        return Alert.alert("알림", "오류가 발생했습니다.");
+      }
+    }
+  };
+
+  const onShare = async () => {
+    let content: { message: string; url: string } = {
+      message: "",
+      url: "",
+    };
+    if (item?.file) {
+      setLoading(true);
+      let url = await downloadFile(
+        getSupabaseFileUrl(item?.file as string).uri
+      );
+      setLoading(false);
+      content.url = url || ""; // 'undefined'를 방지하기 위해타입 설정
+    }
+    Share.share(content);
+  };
 
   const postTime = moment(item?.created_at).format("MM/DD hh:mm");
+  const liked = likes.filter((like) => like.userId === currentUser.id)[0]
+    ? true
+    : false;
+
   return (
     <View style={[styles.container, hasShadow && shadowStyle]}>
       <View style={styles.header}>
@@ -113,33 +180,37 @@ const PostCard = ({
       {/* footer - like, comment, share */}
       <View style={styles.footer}>
         <View style={styles.footerItem}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={onLike}>
             <Icon
               name={liked ? "heart" : "heart-outline"}
               size={26}
               color={liked ? theme.colors.rose : theme.colors.textLight}
             />
           </TouchableOpacity>
-          <Text>{item?.likes_count || 0}</Text>
+          <Text>{likes?.length}</Text>
         </View>
         <View style={styles.footerItem}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={openPostDetails}>
             <Icon
               name='chatbox-outline'
               size={24}
               color={theme.colors.textLight}
             />
           </TouchableOpacity>
-          <Text>{item?.comments_count || 0}</Text>
+          <Text> {0}</Text>
         </View>
         <View style={styles.footerItem}>
-          <TouchableOpacity onPress={() => {}}>
-            <Icon
-              name='share-outline'
-              size={24}
-              color={theme.colors.textLight}
-            />
-          </TouchableOpacity>
+          {loading ? (
+            <Loading size='small' />
+          ) : (
+            <TouchableOpacity onPress={onShare}>
+              <Icon
+                name='share-outline'
+                size={24}
+                color={theme.colors.textLight}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>

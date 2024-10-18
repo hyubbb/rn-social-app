@@ -40,7 +40,7 @@ export const fetchPosts = async (
   try {
     const { data, error } = await supabase
       .from("posts")
-      .select("*, user:users(id, name, image)")
+      .select("*, user:users(id, name, image), postLikes(*)")
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) {
@@ -51,5 +51,52 @@ export const fetchPosts = async (
   } catch (error) {
     console.log("fetchPost 오류", error);
     return { success: false, msg: "fetchPost 오류", data: [] };
+  }
+};
+
+export const createPostLike = async (postLike: {
+  userId: string;
+  postId: string;
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from("postLikes")
+      .insert(postLike)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.log("createPostLike 오류", error);
+    return { success: false, msg: "createPostLike 오류", data: [] };
+  }
+};
+
+export const deletePostLike = async ({
+  postId,
+  userId,
+}: {
+  postId: string;
+  userId: string;
+}) => {
+  try {
+    const { error } = await supabase
+      .from("postLikes")
+      .delete()
+      .eq("userId", userId)
+      .eq("postId", postId);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.log("removePostLike 오류", error);
+    return { success: false, msg: "removePostLike 오류", data: [] };
   }
 };
