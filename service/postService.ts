@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { uploadImage } from "./imageService";
-import { PostType, PostWithUser } from "@/types";
+import { PostType, PostWithUser, PostWithUserAndComments } from "@/types";
 
 export const createOrUpdatePost = async (post: any) => {
   try {
@@ -35,22 +35,46 @@ export const fetchPosts = async (
 ): Promise<{
   success: boolean;
   msg: string;
-  data: PostWithUser[];
+  data: PostWithUserAndComments[];
 }> => {
   try {
     const { data, error } = await supabase
       .from("posts")
-      .select("*, user:users(id, name, image), postLikes(*)")
+      .select(
+        "*, user:users(id, name, image), postLikes(*), commentCount:comments(count)"
+      )
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) {
       throw error;
     }
 
-    return { success: true, msg: "fetchPosts 성공", data };
+    return { success: true, msg: "fetchPost 성공", data };
   } catch (error) {
     console.log("fetchPost 오류", error);
     return { success: false, msg: "fetchPost 오류", data: [] };
+  }
+};
+
+export const fetchPostDetails = async (postId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select(
+        "*, user:users(id, name, image), postLikes(*), comments(*, user:users(id, name, image)),  commentCount:comments(count)"
+      )
+      .eq("id", postId)
+      .order("created_at", { ascending: false, foreignTable: "comments" })
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, msg: "fetchPostDetails 성공", data };
+  } catch (error) {
+    console.log("fetchPostDetails 오류", error);
+    return { success: false, msg: "fetchPostDetails 오류", data: [] };
   }
 };
 
@@ -76,6 +100,29 @@ export const createPostLike = async (postLike: {
   }
 };
 
+export const createComment = async (comment: {
+  userId: string;
+  postId: string;
+  text: string;
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from("comments")
+      .insert(comment)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.log("createComment 오류", error);
+    return { success: false, msg: "createComment 오류", data: [] };
+  }
+};
+
 export const deletePostLike = async ({
   postId,
   userId,
@@ -98,5 +145,22 @@ export const deletePostLike = async ({
   } catch (error) {
     console.log("removePostLike 오류", error);
     return { success: false, msg: "removePostLike 오류", data: [] };
+  }
+};
+export const deleteComment = async ({ commentId }: { commentId: string }) => {
+  try {
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.log("deleteComment 오류", error);
+    return { success: false, msg: "deleteComment 오류", data: [] };
   }
 };

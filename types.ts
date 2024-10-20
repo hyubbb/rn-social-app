@@ -76,11 +76,25 @@ export type PostLike = {
 };
 
 export type PostWithUser = {
-  body: string;
-  created_at: string;
-  file: ImagePickerAsset | string | null;
-  id: string;
+  body?: string;
+  created_at?: string;
+  file?: ImagePickerAsset | string | null;
+  id?: string;
+  user?: UserType;
+  userId?: string;
+  postLikes?: PostLike[];
+};
+
+export type PostWithUserAndComments = PostWithUser & {
+  comments: CommentType[];
+  commentCount: { count: number }[];
+};
+
+export type CommentType = {
+  id?: string;
+  postId?: string;
+  userId?: string;
+  text?: string;
+  created_at?: string;
   user: UserType;
-  userId: string;
-  postLikes: PostLike[];
 };

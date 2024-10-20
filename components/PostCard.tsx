@@ -8,7 +8,12 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { PostLike, PostWithUser, UserType } from "@/types";
+import {
+  PostLike,
+  PostWithUser,
+  PostWithUserAndComments,
+  UserType,
+} from "@/types";
 import { Router } from "expo-router";
 import {
   downloadFile,
@@ -17,7 +22,7 @@ import {
 } from "@/service/imageService";
 import Avatar from "./Avatar";
 import { theme } from "@/constants/themes";
-import { hp, stripHtmlTags } from "@/helpers/commons";
+import { hp } from "@/helpers/commons";
 import moment from "moment";
 import Icon from "@/assets/icons";
 import RenderHtml from "react-native-render-html";
@@ -43,17 +48,21 @@ const tagStyles = {
   },
 };
 
+type PostCardProps = {
+  item: PostWithUserAndComments;
+  currentUser: UserType;
+  router: Router;
+  hasShadow?: boolean;
+  showMoreIcon?: boolean;
+};
+
 const PostCard = ({
   item,
   currentUser,
   router,
-  hasShadow = true,
-}: {
-  item: PostWithUser;
-  currentUser: UserType;
-  router: Router;
-  hasShadow?: boolean;
-}) => {
+  hasShadow,
+  showMoreIcon = true,
+}: PostCardProps) => {
   const { width } = useWindowDimensions();
   const [likes, setLikes] = useState<PostLike[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,10 +78,12 @@ const PostCard = ({
   };
 
   useEffect(() => {
-    setLikes(item?.postLikes);
+    if (item?.postLikes) setLikes(item?.postLikes);
   }, []);
 
   const openPostDetails = () => {
+    if (!showMoreIcon) return null;
+
     router.push({
       pathname: "/postDetails",
       params: {
@@ -84,14 +95,13 @@ const PostCard = ({
   const onLike = async () => {
     let data = {
       userId: currentUser.id,
-      postId: item?.id,
+      postId: item?.id as string,
     };
     if (liked) {
       // 좋아요 취소
       let updatedLikes = likes.filter((like) => like.userId !== currentUser.id);
       setLikes([...updatedLikes]);
       let res = await deletePostLike(data);
-      console.log("res", res);
       if (!res.success) {
         return Alert.alert("알림", "오류가 발생했습니다.");
       }
@@ -99,7 +109,6 @@ const PostCard = ({
       // 좋아요 추가
       let res = await createPostLike(data);
       setLikes([...likes, res.data]);
-      console.log("res", res);
       if (!res.success) {
         return Alert.alert("알림", "오류가 발생했습니다.");
       }
@@ -122,7 +131,7 @@ const PostCard = ({
     Share.share(content);
   };
 
-  const postTime = moment(item?.created_at).format("MM/DD hh:mm");
+  const createdAt = moment(item?.created_at).format("MM/DD hh:mm");
   const liked = likes.filter((like) => like.userId === currentUser.id)[0]
     ? true
     : false;
@@ -139,16 +148,18 @@ const PostCard = ({
           />
           <View style={styles.userInfoText}>
             <Text style={styles.userName}>{item?.user?.name}</Text>
-            <Text style={styles.postTime}>{postTime}</Text>
+            <Text style={styles.createdAt}>{createdAt}</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => {}}>
-          <Icon
-            name='ellipsis-horizontal'
-            size={20}
-            color={theme.colors.text}
-          />
-        </TouchableOpacity>
+        {showMoreIcon && (
+          <TouchableOpacity onPress={() => {}}>
+            <Icon
+              name='ellipsis-horizontal'
+              size={20}
+              color={theme.colors.text}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.content}>
         <View style={styles.postBody}>
@@ -197,7 +208,7 @@ const PostCard = ({
               color={theme.colors.textLight}
             />
           </TouchableOpacity>
-          <Text> {0}</Text>
+          <Text>{item?.commentCount[0]?.count ?? 0}</Text>
         </View>
         <View style={styles.footerItem}>
           {loading ? (
@@ -250,7 +261,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.text,
   },
-  postTime: {
+  createdAt: {
     fontSize: hp(1.6),
     color: theme.colors.textLight,
   },

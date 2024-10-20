@@ -1,28 +1,29 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import React from "react";
+import React, { forwardRef } from "react";
 import { theme } from "@/constants/themes";
 import { hp } from "@/helpers/commons";
 
-const Input = (props: any) => {
+const Input = forwardRef((props: any, ref: any) => {
   return (
     <View style={[styles.container, props?.containerStyles]}>
       {props?.icon}
       <TextInput
         style={{ flex: 1 }}
         placeholderTextColor={theme.colors.textLight}
-        ref={props?.inputRef}
+        ref={ref}
         autoCapitalize='none'
         secureTextEntry={props?.secureTextEntry}
         {...props}
       />
     </View>
   );
-};
+});
 
 export default Input;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     flexDirection: "row",
     height: hp(7),
     alignItems: "center",

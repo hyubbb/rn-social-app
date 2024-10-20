@@ -18,7 +18,12 @@ import Icon from "@/assets/icons";
 import { useRouter } from "expo-router";
 import Avatar from "@/components/Avatar";
 import { onLogout } from "@/service/AuthService";
-import { PostType, PostWithUser, UserType } from "@/types";
+import {
+  PostType,
+  PostWithUser,
+  PostWithUserAndComments,
+  UserType,
+} from "@/types";
 import { fetchPosts } from "@/service/postService";
 import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";
@@ -35,7 +40,7 @@ const Home = () => {
   const { user, setAuth } = useAuth();
   const userData = user as UserType;
   const router = useRouter();
-  const [posts, setPosts] = useState<PostWithUser[]>([]);
+  const [posts, setPosts] = useState<PostWithUserAndComments[]>([]);
   const [hasMore, setHasMore] = useState(true);
 
   // let limit = 0;
@@ -54,7 +59,7 @@ const Home = () => {
   useEffect(() => {
     // supabase의 realtime을 사용
     // 포스트 생성, 수정, 삭제 이벤트 발생시 실행
-    let postChannel = supabase
+    let dispatchChannel = supabase
       .channel("posts")
       .on(
         "postgres_changes",
@@ -70,14 +75,14 @@ const Home = () => {
     // getPosts();
 
     return () => {
-      supabase.removeChannel(postChannel);
+      supabase.removeChannel(dispatchChannel);
     };
   }, []);
 
   const getPosts = async () => {
     if (!hasMore) return;
     limit = limit + 4;
-    console.log(limit);
+
     let res = await fetchPosts(limit);
     if (res.success) {
       // 기존의 post갯수와 새로불러온 데이터의 갯수가 같으면 더이상의 업데이트가 존재하지 않는다는 것
