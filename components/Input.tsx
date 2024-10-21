@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 import { theme } from "@/constants/themes";
 import { hp } from "@/helpers/commons";
 
-const Input = forwardRef((props: any, ref: any) => {
+const Input = forwardRef((props: any, ref?: any) => {
   return (
     <View style={[styles.container, props?.containerStyles]}>
       {props?.icon}
@@ -23,7 +23,6 @@ export default Input;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     flexDirection: "row",
     height: hp(7),
     alignItems: "center",

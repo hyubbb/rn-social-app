@@ -19,6 +19,7 @@ import { useRouter } from "expo-router";
 import Avatar from "@/components/Avatar";
 import { onLogout } from "@/service/AuthService";
 import {
+  NotificationType,
   PostType,
   PostWithUser,
   PostWithUserAndComments,
@@ -41,18 +42,36 @@ const Home = () => {
   const userData = user as UserType;
   const router = useRouter();
   const [posts, setPosts] = useState<PostWithUserAndComments[]>([]);
+  const [notifications, setNotifications] = useState<number>(0);
   const [hasMore, setHasMore] = useState(true);
 
   // let limit = 0;
   const handlePostEvent = async (payload: any) => {
     // payload 는 realtime 이벤트 발생시 받는 데이터
-    if (payload.eventType == "INSERT") {
+    if (payload.eventType == "INSERT" && payload?.new?.id) {
       // fetchPost할 때, posts&user이니까
       // payload로 받은 post데이터에 user데이터 병합
       let newPost = { ...payload.new };
       let res = await getUserData(newPost.userId);
       newPost.user = res.success ? res.data : {};
       setPosts((prev) => [newPost, ...prev]);
+    }
+    if (payload.eventType == "DELETE" && payload?.old?.id) {
+      setPosts((prev) => prev.filter((post) => post.id !== payload.old.id));
+    }
+
+    if (payload.eventType == "UPDATE" && payload?.new?.id) {
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id == payload.new.id ? { ...post, ...payload.new } : post
+        )
+      );
+    }
+  };
+
+  const handleNotificationEvent = async (payload: any) => {
+    if (payload.eventType == "INSERT" && payload?.new?.id) {
+      setNotifications((prev) => prev + 1);
     }
   };
 
@@ -74,8 +93,23 @@ const Home = () => {
 
     // getPosts();
 
+    let notificationChannel = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `receiverId=eq.${userData.id}`,
+        },
+        handleNotificationEvent
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(dispatchChannel);
+      supabase.removeChannel(notificationChannel);
     };
   }, []);
 
@@ -100,12 +134,22 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>SNS</Text>
           <View style={styles.icons}>
-            <Pressable onPress={() => router.push("/notifications")}>
+            <Pressable
+              onPress={() => {
+                setNotifications(0);
+                router.push("/notifications");
+              }}
+            >
               <Icon
                 name='heart-outline'
                 size={hp(3.5)}
                 color={theme.colors.text}
               />
+              {notifications > 0 && (
+                <View style={styles.notification}>
+                  <Text style={styles.notificationText}>{notifications}</Text>
+                </View>
+              )}
             </Pressable>
             <Pressable onPress={() => router.push("/newPost")}>
               <Icon
@@ -184,5 +228,20 @@ const styles = StyleSheet.create({
     fontSize: hp(2),
     textAlign: "center",
     color: theme.colors.text,
+  },
+  notification: {
+    position: "absolute",
+    top: -3,
+    right: -5,
+    width: hp(2),
+    height: hp(2),
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.rose,
+    borderRadius: 20,
+  },
+  notificationText: {
+    fontSize: hp(1.5),
+    color: "white",
   },
 });

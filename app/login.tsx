@@ -27,8 +27,8 @@ const login = () => {
       Alert.alert("Login", "Please enter all fields");
       return;
     }
-    let email = emailRef.current.trim();
-    let password = passwordRef.current.trim();
+    let email = emailRef?.current;
+    let password = passwordRef?.current;
 
     setLoading(true);
 
@@ -48,7 +48,7 @@ const login = () => {
     <ScreenWrapper bg={"white"}>
       <StatusBar barStyle='dark-content' />
       <View style={styles.container}>
-        <BackButton />
+        <BackButton router={router} />
         {/* welcome */}
         <View>
           <Text style={styles.welcomeText}>Hello,</Text>

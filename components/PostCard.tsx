@@ -54,6 +54,9 @@ type PostCardProps = {
   router: Router;
   hasShadow?: boolean;
   showMoreIcon?: boolean;
+  showDelete?: boolean;
+  onDelete?: (postId: string) => void;
+  onEdit?: (item: PostWithUserAndComments) => void;
 };
 
 const PostCard = ({
@@ -62,6 +65,9 @@ const PostCard = ({
   router,
   hasShadow,
   showMoreIcon = true,
+  showDelete = false,
+  onDelete = () => {},
+  onEdit = () => {},
 }: PostCardProps) => {
   const { width } = useWindowDimensions();
   const [likes, setLikes] = useState<PostLike[]>([]);
@@ -131,6 +137,17 @@ const PostCard = ({
     Share.share(content);
   };
 
+  const handlePostDelete = () => {
+    Alert.alert("삭제", "댓글을 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: () => onDelete(item.id as string),
+      },
+    ]);
+  };
+
   const createdAt = moment(item?.created_at).format("MM/DD hh:mm");
   const liked = likes.filter((like) => like.userId === currentUser.id)[0]
     ? true
@@ -141,18 +158,22 @@ const PostCard = ({
       <View style={styles.header}>
         {/* userinfo and posttime */}
         <View style={styles.userInfo}>
-          <Avatar
-            size={hp(6)}
-            uri={item?.user?.image || ""}
-            rounded={theme.radius.md}
-          />
+          <TouchableOpacity
+            onPress={() => router.push(`/profile?userId=${item?.user?.id}`)}
+          >
+            <Avatar
+              size={hp(6)}
+              uri={item?.user?.image || ""}
+              rounded={theme.radius.md}
+            />
+          </TouchableOpacity>
           <View style={styles.userInfoText}>
             <Text style={styles.userName}>{item?.user?.name}</Text>
             <Text style={styles.createdAt}>{createdAt}</Text>
           </View>
         </View>
         {showMoreIcon && (
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity onPress={openPostDetails}>
             <Icon
               name='ellipsis-horizontal'
               size={20}
@@ -160,7 +181,28 @@ const PostCard = ({
             />
           </TouchableOpacity>
         )}
+
+        {showDelete && currentUser.id == item?.userId && (
+          <View style={styles.actions}>
+            <TouchableOpacity onPress={() => onEdit(item)}>
+              <Icon
+                name='pencil-outline'
+                size={hp(2.5)}
+                color={theme.colors.text}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handlePostDelete}>
+              <Icon
+                name='trash-outline'
+                size={hp(2.5)}
+                color={theme.colors.rose}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
+
+      {/* content */}
       <View style={styles.content}>
         <View style={styles.postBody}>
           {item?.body && (
@@ -208,7 +250,7 @@ const PostCard = ({
               color={theme.colors.textLight}
             />
           </TouchableOpacity>
-          <Text>{item?.commentCount[0]?.count ?? 0}</Text>
+          <Text>{item?.commentCount?.[0]?.count ?? 0}</Text>
         </View>
         <View style={styles.footerItem}>
           {loading ? (
@@ -286,5 +328,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 10,
   },
 });

@@ -98,3 +98,15 @@ export type CommentType = {
   created_at?: string;
   user: UserType;
 };
+
+export type NotificationType = {
+  id: string;
+  data: {
+    postId: string;
+    commentId: string;
+  };
+  receiverId: string;
+  senderId: string;
+  title: string;
+  created_at: string;
+};

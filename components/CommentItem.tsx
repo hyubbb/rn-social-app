@@ -17,12 +17,15 @@ import moment from "moment";
 const CommentItem = ({
   comment,
   canDelete = false,
+  highlight = false,
   onDelete,
 }: {
   comment: CommentType;
   canDelete: boolean;
+  highlight: boolean;
   onDelete: (id: string) => Promise<void>;
 }) => {
+  console.log(highlight);
   if (!comment) return null;
   const createdAt = moment(comment?.created_at).format("MMM D");
 
@@ -44,7 +47,7 @@ const CommentItem = ({
         style={{ marginTop: 5 }}
         size={hp(5)}
       />
-      <View style={styles.commentContent}>
+      <View style={[styles.commentContent, highlight && styles.highlight]}>
         <View style={styles.commentHeader}>
           <View style={styles.commentInfo}>
             <Text
@@ -111,4 +114,15 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   deleteButton: {},
+  highlight: {
+    backgroundColor: "white",
+    borderWidth: 0.2,
+
+    borderColor: theme.colors.dark,
+    shadowColor: theme.colors.dark,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
 });

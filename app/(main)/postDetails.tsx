@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   createComment,
   deleteComment,
+  deletePost,
   fetchPostDetails,
 } from "@/service/postService";
 import PostCard from "@/components/PostCard";
@@ -25,10 +26,11 @@ import Icon from "@/assets/icons";
 import CommentItem from "@/components/CommentItem";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/service/userService";
+import { createNotification } from "@/service/NotificationService";
 
 const PostDetails = () => {
   const router = useRouter();
-  const { postId } = useLocalSearchParams();
+  const { postId, commentId } = useLocalSearchParams();
   const { user } = useAuth();
 
   const [startLoading, setStartLoading] = useState(true);
@@ -97,6 +99,16 @@ const PostDetails = () => {
       //   ...post,
       //   comments: [...post?.comments, { ...res.data, user: user }],
       // });
+      if (user?.id != post?.userId) {
+        let notify = {
+          senderId: user?.id as string,
+          receiverId: post?.userId as string,
+          title: "새로운 댓글이 달렸습니다.",
+          data: JSON.stringify({ postId: post.id, commentId: res.data.id }),
+        };
+
+        createNotification(notify);
+      }
       inputRef.current?.clear();
       commentRef.current = "";
     } else {
@@ -117,6 +129,25 @@ const PostDetails = () => {
     }
   };
 
+  const onDeletePost = async (postId: string) => {
+    // delete post
+    let { data, success, msg } = await deletePost({ postId });
+
+    if (success) {
+      router.back();
+    } else {
+      Alert.alert("삭제", msg);
+    }
+  };
+
+  const onEditPost = async (item: PostWithUserAndComments) => {
+    // router의 params은 직렬화 가능한 타입만 허용하기 때문에 직렬화 처리
+    const serializedItem = encodeURIComponent(JSON.stringify(item)); // JSON 직렬화 후 URI로 인코딩
+
+    router.back();
+    router.push({ pathname: "/newPost", params: { data: serializedItem } });
+  };
+
   if (startLoading) {
     return (
       <View style={styles.center}>
@@ -125,7 +156,7 @@ const PostDetails = () => {
     );
   }
 
-  if (!startLoading && !post) {
+  if (!post) {
     return (
       <View style={styles.center}>
         <Text>게시물을 찾을 수 없습니다.</Text>
@@ -146,6 +177,9 @@ const PostDetails = () => {
             router={router}
             hasShadow={false}
             showMoreIcon={false}
+            showDelete={true}
+            onDelete={onDeletePost}
+            onEdit={onEditPost}
           />
         )}
 
@@ -155,7 +189,7 @@ const PostDetails = () => {
             placeholder='댓글을 입력해주세요.'
             onChangeText={(text: string) => (commentRef.current = text)}
             placeholderTextColor={theme.colors.textLight}
-            containerStyle={{
+            containerStyles={{
               flex: 1,
               height: hp(6),
               borderRadius: theme.radius.xl,
@@ -184,6 +218,7 @@ const PostDetails = () => {
             <CommentItem
               key={comment.id}
               comment={comment}
+              highlight={commentId == comment.id}
               canDelete={
                 comment.user.id === user?.id || post?.user?.id === user?.id
               }

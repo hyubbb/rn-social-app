@@ -11,16 +11,16 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
 import Avatar from "@/components/Avatar";
 import { hp, wp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserType } from "@/types";
+import { PostWithUser, PostWithUserAndComments, UserType } from "@/types";
 import RichTextEditor from "@/components/RichTextEditor";
-import { useRouter } from "expo-router";
+import { Routes, useLocalSearchParams, useRouter } from "expo-router";
 import Icon from "@/assets/icons";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
@@ -30,6 +30,13 @@ import { ResizeMode, Video } from "expo-av";
 import { createOrUpdatePost } from "@/service/postService";
 import { RichEditor } from "react-native-pell-rich-editor";
 
+type PostData = {
+  id?: string;
+  file: string | ImagePickerAsset | null;
+  body: string;
+  userId: string;
+};
+
 const newPost = () => {
   const { user: userData } = useAuth();
   const user = userData as UserType;
@@ -38,7 +45,21 @@ const newPost = () => {
   const scrollViewRef = useRef<ScrollView | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<ImagePickerAsset | null>(null);
+  const [file, setFile] = useState<PostData["file"]>(null);
+  const { data } = useLocalSearchParams(); // 직렬화된 데이터를 받아옴
+  const post = data ? JSON.parse(decodeURIComponent(data as string)) : null; // 역직렬화
+
+  useEffect(() => {
+    console.log(post);
+    if (post && post.id) {
+      bodyRef.current = post.body as string;
+      setFile(post.file as PostData["file"]);
+
+      setTimeout(() => {
+        editorRef.current?.setContentHTML(post.body as string);
+      }, 500);
+    }
+  }, []);
 
   const onPick = async (isImage: boolean) => {
     let mediaConfig: any = {
@@ -93,11 +114,16 @@ const newPost = () => {
       return;
     }
 
-    let data = {
+    let data: PostData = {
       file: file,
       body: bodyRef.current,
       userId: user?.id,
     };
+
+    if (post && post.id) {
+      data.id = post.id as string;
+    }
+
     setLoading(true);
     const result = await createOrUpdatePost(data);
     setLoading(false);
@@ -219,7 +245,7 @@ const newPost = () => {
           </KeyboardAvoidingView>
           <Button
             buttonStyle={{ height: hp(6.2) }}
-            title='Post'
+            title={post && post.id ? "수정" : "게시"}
             loading={loading}
             hasShadow={false}
             onPress={onSubmit}

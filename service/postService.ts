@@ -31,25 +31,40 @@ export const createOrUpdatePost = async (post: any) => {
 };
 
 export const fetchPosts = async (
-  limit = 10
+  limit = 10,
+  userId?: string
 ): Promise<{
   success: boolean;
   msg: string;
   data: PostWithUserAndComments[];
 }> => {
   try {
-    const { data, error } = await supabase
-      .from("posts")
-      .select(
-        "*, user:users(id, name, image), postLikes(*), commentCount:comments(count)"
-      )
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    if (error) {
-      throw error;
+    if (userId) {
+      const { data, error } = await supabase
+        .from("posts")
+        .select(
+          "*, user:users(id, name, image), postLikes(*), commentCount:comments(count)"
+        )
+        .eq("userId", userId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) {
+        throw error;
+      }
+      return { success: true, msg: "fetchPost 성공", data };
+    } else {
+      const { data, error } = await supabase
+        .from("posts")
+        .select(
+          "*, user:users(id, name, image), postLikes(*), commentCount:comments(count)"
+        )
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) {
+        throw error;
+      }
+      return { success: true, msg: "fetchPost 성공", data };
     }
-
-    return { success: true, msg: "fetchPost 성공", data };
   } catch (error) {
     console.log("fetchPost 오류", error);
     return { success: false, msg: "fetchPost 오류", data: [] };
@@ -147,6 +162,7 @@ export const deletePostLike = async ({
     return { success: false, msg: "removePostLike 오류", data: [] };
   }
 };
+
 export const deleteComment = async ({ commentId }: { commentId: string }) => {
   try {
     const { error } = await supabase
@@ -162,5 +178,28 @@ export const deleteComment = async ({ commentId }: { commentId: string }) => {
   } catch (error) {
     console.log("deleteComment 오류", error);
     return { success: false, msg: "deleteComment 오류", data: [] };
+  }
+};
+
+export const deletePost = async ({
+  postId,
+}: {
+  postId: string;
+}): Promise<{
+  success: boolean;
+  msg: string;
+  data: { postId: string };
+}> => {
+  try {
+    const { error } = await supabase.from("posts").delete().eq("id", postId);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, data: { postId } };
+  } catch (error) {
+    console.log("deletePost 오류", error);
+    return { success: false, msg: "deletePost 오류", data: [] };
   }
 };
