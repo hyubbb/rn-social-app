@@ -51,7 +51,6 @@ export default Notification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: wp(4),
   },
   listStyle: {
     paddingVertical: 20,

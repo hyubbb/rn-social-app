@@ -22,31 +22,36 @@ import { fetchPosts } from "@/service/postService";
 import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";
 import { getUserData } from "@/service/userService";
+import { createChatRoom, fetchChat } from "@/service/MessageService";
 
 type UserHeaderProps = {
   user: UserType;
   router: any;
   handleLogout: () => void;
+  currentUser: string | undefined;
+  firstChat: () => Promise<void>;
 };
 
 var limit = 0;
 const Profile = () => {
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const router = useRouter();
   const [hasMore, setHasMore] = useState(true);
   const [posts, setPosts] = useState<PostWithUserAndComments[]>([]);
   const [userData, setUserData] = useState<UserType | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { userId } = useLocalSearchParams();
+  const { userId } = useLocalSearchParams(); // 다른 유저의 정보를 볼때만 존재하는 값
 
   useEffect(() => {
     if (userId) {
-      // 유저 데이터 가져오기
+      // 타인의 정보를 확인
       fetchUserData(userId as string);
     } else {
-      setUserData(user as UserType);
+      // 나의 데이터를 확인
+      setUserData(currentUser as UserType);
     }
-  }, [userId, user]);
+  }, [userId, currentUser]);
 
   useEffect(() => {
     getPosts();
@@ -87,7 +92,44 @@ const Profile = () => {
     }
   };
 
-  if (!userData) {
+  const firstChat = async () => {
+    setIsLoading(true);
+    // 채팅이 없으면 첫메시지라는것인데
+    // 그럼 채팅방이 존재하지 않기때문에 채팅방을 만들어주는 코드작성
+    let data = {
+      userId: currentUser?.id as string,
+      otherUserId: userData?.id as string,
+    };
+
+    // profile에서 눌렀을때, 방의정보를 가져왔는데 없을때는 create, 아니면 router
+    let res = await fetchChat(data);
+    if (res.success) {
+      if (res.data.length == 0) {
+        // 채팅방이 없으면 채팅방을 만들어줌
+        let res = await createChatRoom(data);
+        if (res.success) {
+          router.push({
+            pathname: "/message",
+            params: {
+              otherUserId: userData?.id,
+              roomId: res.data.id,
+            },
+          });
+        }
+      } else {
+        router.push({
+          pathname: "/message",
+          params: {
+            otherUserId: userData?.id,
+            roomId: res.data[0].room_id,
+          },
+        });
+      }
+      setIsLoading(false);
+    }
+  };
+
+  if (!userData || isLoading) {
     return <Loading />;
   }
 
@@ -102,6 +144,8 @@ const Profile = () => {
             user={userData}
             router={router}
             handleLogout={handleLogout}
+            currentUser={currentUser?.id}
+            firstChat={firstChat}
           />
         }
         ListHeaderComponentStyle={{ marginBottom: 30 }}
@@ -132,7 +176,13 @@ const Profile = () => {
   );
 };
 
-const UserHeader = ({ user, router, handleLogout }: UserHeaderProps) => {
+const UserHeader = ({
+  user,
+  router,
+  handleLogout,
+  currentUser,
+  firstChat,
+}: UserHeaderProps) => {
   return (
     <View style={styles.header}>
       <View>
@@ -148,16 +198,28 @@ const UserHeader = ({ user, router, handleLogout }: UserHeaderProps) => {
             size={hp(12)}
             rounded={theme.radius.xxl * 1.4}
           />
-          <Pressable
-            style={styles.editIcon}
-            onPress={() => router.push("/editProfile")}
-          >
-            <Icon
-              name='create-outline'
-              size={20}
-              color={theme.colors.textDark}
-            />
-          </Pressable>
+          {user?.id == currentUser ? (
+            // 내 프로필일 경우
+            <Pressable
+              style={styles.editIcon}
+              onPress={() => router.push("/editProfile")}
+            >
+              <Icon
+                name='create-outline'
+                size={20}
+                color={theme.colors.textDark}
+              />
+            </Pressable>
+          ) : (
+            // 타인의 프로필일 경우
+            <Pressable style={styles.editIcon} onPress={() => firstChat()}>
+              <Icon
+                name='chatbubble-outline'
+                size={20}
+                color={theme.colors.textDark}
+              />
+            </Pressable>
+          )}
         </View>
         {/* useName and address */}
         <View style={styles.userInfo}>
@@ -197,7 +259,6 @@ export default Profile;
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: wp(4),
     flex: 1,
   },
   container: {

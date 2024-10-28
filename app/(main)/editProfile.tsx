@@ -190,7 +190,6 @@ export default EditProfile;
 // 스타일 정의
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: wp(4),
     flex: 1,
   },
   form: {

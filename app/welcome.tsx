@@ -37,7 +37,6 @@ const welcome = () => {
         <View style={styles.footer}>
           <Button
             title='Getting Started'
-            buttonStyle={{ marginHorizontal: wp(3) }}
             onPress={() => router.push("/signUp")}
           />
           <View style={styles.buttonTextContainer}>
@@ -70,7 +69,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
     backgroundColor: "white",
-    paddingHorizontal: wp(4),
   },
   welcomeImage: {
     width: wp(70),

@@ -63,6 +63,7 @@ const login = () => {
             icon={<Icon name='mail' size={26} />}
             placeholder='Enter your email'
             onChangeText={(value: string) => (emailRef.current = value)}
+            keyboardType='email-address'
           />
           <Input
             icon={<Icon name='lock-open-outline' size={26} />}
@@ -99,7 +100,7 @@ const login = () => {
 export default login;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, gap: 45, paddingHorizontal: wp(5) },
+  container: { flex: 1, gap: 45 },
   welcomeText: {
     fontSize: wp(6),
     fontWeight: theme.fonts.bold,

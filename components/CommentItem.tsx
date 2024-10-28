@@ -25,7 +25,6 @@ const CommentItem = ({
   highlight: boolean;
   onDelete: (id: string) => Promise<void>;
 }) => {
-  console.log(highlight);
   if (!comment) return null;
   const createdAt = moment(comment?.created_at).format("MMM D");
 

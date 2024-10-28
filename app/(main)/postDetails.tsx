@@ -44,7 +44,7 @@ const PostDetails = () => {
     // payload 는 realtime 이벤트 발생시 받는 데이터
     if (payload.new) {
       let newComment = { ...payload.new };
-      let res = await getUserData(newComment.userId);
+      let res = await getUserData(newComment.user_id);
       newComment.user = res.success ? res.data : {};
       setPost((prev) => {
         if (!prev) return prev;
@@ -65,7 +65,7 @@ const PostDetails = () => {
           event: "INSERT",
           schema: "public",
           table: "comments",
-          filter: `postId=eq.${postId}`,
+          filter: `post_id=eq.${postId}`,
         },
         handleCommentEvent
       )
@@ -87,8 +87,8 @@ const PostDetails = () => {
   const onNewComment = async () => {
     if (!commentRef.current) return null;
     let data = {
-      userId: user?.id as string,
-      postId: post?.id as string,
+      user_id: user?.id as string,
+      post_id: post?.id as string,
       text: commentRef.current,
     };
     setLoading(true);
@@ -99,12 +99,12 @@ const PostDetails = () => {
       //   ...post,
       //   comments: [...post?.comments, { ...res.data, user: user }],
       // });
-      if (user?.id != post?.userId) {
+      if (user?.id != post?.user_id) {
         let notify = {
           senderId: user?.id as string,
-          receiverId: post?.userId as string,
+          receiverId: post?.user_id as string,
           title: "새로운 댓글이 달렸습니다.",
-          data: JSON.stringify({ postId: post.id, commentId: res.data.id }),
+          data: JSON.stringify({ postId: post?.id, commentId: res.data.id }),
         };
 
         createNotification(notify);

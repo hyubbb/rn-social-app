@@ -50,7 +50,6 @@ const newPost = () => {
   const post = data ? JSON.parse(decodeURIComponent(data as string)) : null; // 역직렬화
 
   useEffect(() => {
-    console.log(post);
     if (post && post.id) {
       bodyRef.current = post.body as string;
       setFile(post.file as PostData["file"]);
@@ -261,7 +260,6 @@ export default newPost;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: wp(4),
     marginBottom: 20,
     gap: 20,
   },

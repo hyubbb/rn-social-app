@@ -63,15 +63,15 @@ export type SupabaseUser = SupabaseUserType;
 export type PostType = {
   file: ImagePickerAsset;
   body: string;
-  userId: string;
+  user_id: string;
   created_at?: string;
   id?: string;
 };
 
 export type PostLike = {
   id: string;
-  postId: string;
-  userId: string;
+  post_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -81,7 +81,7 @@ export type PostWithUser = {
   file?: ImagePickerAsset | string | null;
   id?: string;
   user?: UserType;
-  userId?: string;
+  user_id?: string;
   postLikes?: PostLike[];
 };
 
@@ -92,8 +92,8 @@ export type PostWithUserAndComments = PostWithUser & {
 
 export type CommentType = {
   id?: string;
-  postId?: string;
-  userId?: string;
+  post_id?: string;
+  user_id?: string;
   text?: string;
   created_at?: string;
   user: UserType;
@@ -102,11 +102,45 @@ export type CommentType = {
 export type NotificationType = {
   id: string;
   data: {
-    postId: string;
-    commentId: string;
+    post_id: string;
+    comment_id: string;
   };
-  receiverId: string;
-  senderId: string;
+  receiver_id: string;
+  sender_id: string;
   title: string;
   created_at: string;
+};
+
+export type ChatUserType = {
+  id: string;
+  user_id: string;
+  room_id: string;
+  created_at: string;
+  last_read_at: string;
+};
+
+export type MessageListType = {
+  id: string;
+  other_user_id: string;
+  room_id: string;
+  user_id: string;
+  last_read_at: string;
+  created_at: string;
+  users: UserType;
+};
+
+// 채팅 메시지 타입
+export type MessageType = {
+  id: string;
+  user_id: string;
+  room_id: string;
+  content: string;
+  type: "text" | "image";
+  created_at: string;
+  is_read: boolean;
+};
+
+// 채팅 메시지 타입
+export type MessageTypeWithUser = MessageType & {
+  user: UserType;
 };

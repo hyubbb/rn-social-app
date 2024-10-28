@@ -9,6 +9,7 @@ const Input = forwardRef((props: any, ref?: any) => {
       {props?.icon}
       <TextInput
         style={{ flex: 1 }}
+        keyboardType={props?.keyboardType || "default"}
         placeholderTextColor={theme.colors.textLight}
         ref={ref}
         autoCapitalize='none'

@@ -31,23 +31,6 @@ import { ResizeMode, Video } from "expo-av";
 import { createPostLike, deletePostLike } from "@/service/postService";
 import Loading from "./Loading";
 
-const textStyle = {
-  color: theme.colors.textLight,
-  fontSize: hp(1.7),
-};
-
-const tagStyles = {
-  div: textStyle,
-  p: textStyle,
-  ol: textStyle,
-  h1: {
-    color: theme.colors.dark,
-  },
-  h4: {
-    color: theme.colors.dark,
-  },
-};
-
 type PostCardProps = {
   item: PostWithUserAndComments;
   currentUser: UserType;
@@ -63,7 +46,7 @@ const PostCard = ({
   item,
   currentUser,
   router,
-  hasShadow,
+  hasShadow = false,
   showMoreIcon = true,
   showDelete = false,
   onDelete = () => {},
@@ -132,7 +115,7 @@ const PostCard = ({
         getSupabaseFileUrl(item?.file as string).uri
       );
       setLoading(false);
-      content.url = url || ""; // 'undefined'를 방지하기 위해타입 설정
+      content.url = url || "";
     }
     Share.share(content);
   };
@@ -149,7 +132,7 @@ const PostCard = ({
   };
 
   const createdAt = moment(item?.created_at).format("MM/DD hh:mm");
-  const liked = likes.filter((like) => like.userId === currentUser.id)[0]
+  const liked = likes?.filter((like) => like?.userId === currentUser?.id)[0]
     ? true
     : false;
 
@@ -240,7 +223,7 @@ const PostCard = ({
               color={liked ? theme.colors.rose : theme.colors.textLight}
             />
           </TouchableOpacity>
-          <Text>{likes?.length}</Text>
+          <Text>{likes?.length ?? 0}</Text>
         </View>
         <View style={styles.footerItem}>
           <TouchableOpacity onPress={openPostDetails}>
@@ -282,8 +265,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: "white",
     borderWidth: 0.5,
-    borderColor: theme.colors.gray,
-    shadowColor: "#000",
+    borderColor: theme.colors.darkLight,
   },
   header: {
     flexDirection: "row",

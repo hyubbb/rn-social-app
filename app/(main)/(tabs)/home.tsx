@@ -101,7 +101,7 @@ const Home = () => {
           event: "*",
           schema: "public",
           table: "notifications",
-          filter: `receiverId=eq.${userData.id}`,
+          filter: `receiverId=eq.${userData?.id}`,
         },
         handleNotificationEvent
       )
@@ -176,7 +176,12 @@ const Home = () => {
           contentContainerStyle={styles.listStyle}
           keyExtractor={(item) => item.id + ""}
           renderItem={({ item }) => (
-            <PostCard item={item} currentUser={userData} router={router} />
+            <PostCard
+              item={item}
+              currentUser={userData}
+              router={router}
+              hasShadow={true}
+            />
           )}
           onEndReached={() => {
             // 최하단에 도달시
@@ -205,7 +210,6 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: wp(4),
   },
   header: {
     flexDirection: "row",

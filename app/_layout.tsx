@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/service/userService";
 import { SupabaseUser } from "@/types";
 import { LogBox } from "react-native";
+import { SocketProvider } from "@/socket/socket";
 
 LogBox.ignoreLogs([
   "Warning: TRenderEngineProvider:",
@@ -14,7 +15,9 @@ LogBox.ignoreLogs([
 const _layout = () => {
   return (
     <AuthProvider>
-      <MainLayout />
+      <SocketProvider>
+        <MainLayout />
+      </SocketProvider>
     </AuthProvider>
   );
 };

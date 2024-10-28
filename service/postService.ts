@@ -45,7 +45,7 @@ export const fetchPosts = async (
         .select(
           "*, user:users(id, name, image), postLikes(*), commentCount:comments(count)"
         )
-        .eq("userId", userId)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(limit);
       if (error) {
@@ -116,10 +116,11 @@ export const createPostLike = async (postLike: {
 };
 
 export const createComment = async (comment: {
-  userId: string;
-  postId: string;
+  user_id: string;
+  post_id: string;
   text: string;
 }) => {
+  console.log("comment", comment);
   try {
     const { data, error } = await supabase
       .from("comments")
@@ -149,8 +150,8 @@ export const deletePostLike = async ({
     const { error } = await supabase
       .from("postLikes")
       .delete()
-      .eq("userId", userId)
-      .eq("postId", postId);
+      .eq("user_id", userId)
+      .eq("post_id", postId);
 
     if (error) {
       throw error;
@@ -187,8 +188,8 @@ export const deletePost = async ({
   postId: string;
 }): Promise<{
   success: boolean;
-  msg: string;
-  data: { postId: string };
+  msg?: string;
+  data?: { postId: string };
 }> => {
   try {
     const { error } = await supabase.from("posts").delete().eq("id", postId);

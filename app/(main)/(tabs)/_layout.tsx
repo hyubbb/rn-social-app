@@ -15,7 +15,7 @@ export default function TabsLayout() {
           let iconName = "home";
           if (route.name === "home") {
             iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "chat") {
+          } else if (route.name === "messageList") {
             iconName = focused ? "chatbubble" : "chatbubble-outline";
           }
           // You can return any component that you like here!
@@ -38,9 +38,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name='chat'
+        name='messageList'
         options={{
-          title: "Chat",
+          title: "Messages",
           headerShown: false,
         }}
       />
