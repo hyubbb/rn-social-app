@@ -93,12 +93,7 @@ const PostDetails = () => {
     };
     setLoading(true);
     const res = await createComment(data);
-    setLoading(false);
     if (res.success) {
-      // setPost({
-      //   ...post,
-      //   comments: [...post?.comments, { ...res.data, user: user }],
-      // });
       if (user?.id != post?.user_id) {
         let notify = {
           senderId: user?.id as string,
@@ -107,6 +102,7 @@ const PostDetails = () => {
           data: JSON.stringify({ postId: post?.id, commentId: res.data.id }),
         };
 
+        setLoading(false);
         createNotification(notify);
       }
       inputRef.current?.clear();

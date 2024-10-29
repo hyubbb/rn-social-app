@@ -83,12 +83,14 @@ const PostCard = ({
 
   const onLike = async () => {
     let data = {
-      userId: currentUser.id,
-      postId: item?.id as string,
+      user_id: currentUser.id,
+      post_id: item?.id as string,
     };
     if (liked) {
       // 좋아요 취소
-      let updatedLikes = likes.filter((like) => like.userId !== currentUser.id);
+      let updatedLikes = likes.filter(
+        (like) => like.user_id !== currentUser.id
+      );
       setLikes([...updatedLikes]);
       let res = await deletePostLike(data);
       if (!res.success) {
@@ -132,7 +134,8 @@ const PostCard = ({
   };
 
   const createdAt = moment(item?.created_at).format("MM/DD hh:mm");
-  const liked = likes?.filter((like) => like?.userId === currentUser?.id)[0]
+
+  const liked = likes?.filter((like) => like?.user_id === currentUser?.id)[0]
     ? true
     : false;
 
@@ -158,14 +161,14 @@ const PostCard = ({
         {showMoreIcon && (
           <TouchableOpacity onPress={openPostDetails}>
             <Icon
-              name='ellipsis-horizontal'
+              name='ellipsis-vertical'
               size={20}
               color={theme.colors.text}
             />
           </TouchableOpacity>
         )}
 
-        {showDelete && currentUser.id == item?.userId && (
+        {showDelete && currentUser.id == item?.user_id && (
           <View style={styles.actions}>
             <TouchableOpacity onPress={() => onEdit(item)}>
               <Icon

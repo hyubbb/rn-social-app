@@ -1,5 +1,4 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
     "paths": {
@@ -8,8 +7,13 @@
       ]
     },
     "jsx": "react",
-    "lib": ["esnext"],
-    "types": ["react-native"]
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "react-native"
+    ],
+    "esModuleInterop": true
   },
   "include": [
     "**/*.ts",
@@ -17,5 +21,8 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": ["service/MessageService.js"]
+  "exclude": [
+    "service/MessageService.js"
+  ],
+  "extends": "expo/tsconfig.base"
 }

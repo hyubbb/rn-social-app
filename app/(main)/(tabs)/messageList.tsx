@@ -28,13 +28,13 @@ const MessageList = () => {
   useEffect(() => {
     if (!user?.id) return;
     getMessages();
-    setLoading(false);
   }, [user]);
 
   const getMessages = async () => {
     const res = await fetchChatRooms(user?.id as string);
     if (res.success) {
       setMessageList(res.data);
+      setLoading(false);
     }
   };
 
@@ -45,21 +45,6 @@ const MessageList = () => {
     <ScreenWrapper>
       <View style={styles.container}>
         <Header title='Messages' showBackButton={false} />
-        {/* 
-        <View style={styles.chatList}>
-          {messageList.map((item) => (
-            <TouchableOpacity
-              key={item.room_id}
-              onPress={() => router.push(`/message/${item.room_id}`)}
-            >
-              <Text>{item.room_id}</Text>
-            </TouchableOpacity>
-          ))}
-
-          {messageList.length == 0 && (
-            <Text style={styles.noMessages}>No messages</Text>
-          )}
-        </View> */}
 
         {messageList.map((item) => (
           <TouchableOpacity

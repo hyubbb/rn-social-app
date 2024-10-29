@@ -3,7 +3,6 @@ import {
   FlatList,
   LogBox,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -11,20 +10,12 @@ import {
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { useAuth } from "@/contexts/AuthContext";
-import Button from "@/components/Button";
-import { hp, wp } from "@/helpers/commons";
+import { hp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
 import Icon from "@/assets/icons";
 import { useRouter } from "expo-router";
 import Avatar from "@/components/Avatar";
-import { onLogout } from "@/service/AuthService";
-import {
-  NotificationType,
-  PostType,
-  PostWithUser,
-  PostWithUserAndComments,
-  UserType,
-} from "@/types";
+import { PostWithUserAndComments, UserType } from "@/types";
 import { fetchPosts } from "@/service/postService";
 import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";

@@ -50,7 +50,6 @@ const Message = () => {
   useEffect(() => {
     if (!socket || !roomId) return;
     socket?.emit("joinRoom", roomId);
-
     socket?.on("message", (data) => {
       setMessageData((prev) => [...prev, data]);
     });
@@ -110,27 +109,31 @@ const Message = () => {
               <Text>메시지를 보내보세요.</Text>
             </View>
           )}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToIndex({
-              index: messageData.length - 1,
-              animated: true,
-            })
-          }
-          onScrollToIndexFailed={() => {
-            const wait = new Promise((resolve) => setTimeout(resolve, 400));
-            wait.then(() => {
+          onContentSizeChange={() => {
+            if (messageData && messageData.length > 0) {
+              // 데이터 존재 여부 체크
               flatListRef.current?.scrollToIndex({
                 index: messageData.length - 1,
-                animated: true,
               });
-            });
+            }
+          }}
+          onScrollToIndexFailed={() => {
+            if (messageData && messageData.length > 0) {
+              // 데이터 존재 여부 체크
+              const wait = new Promise((resolve) => setTimeout(resolve, 300));
+              wait.then(() => {
+                flatListRef.current?.scrollToIndex({
+                  index: messageData.length - 1,
+                });
+              });
+            }
           }}
         />
 
         {/* KeyboardAvoidingView를 inputContainer 주변에 추가 */}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS와 Android의 동작 차이를 고려
-          keyboardVerticalOffset={hp(6)} // 헤더 높이에 맞춰 적절히 조정
+          keyboardVerticalOffset={hp(5)} // 헤더 높이에 맞춰 적절히 조정
         >
           <View style={styles.inputContainer}>
             <Input
@@ -183,7 +186,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 7,
   },
-  input: {},
+  input: { flex: 1 },
   sendIcon: {
     padding: 10,
     justifyContent: "center",

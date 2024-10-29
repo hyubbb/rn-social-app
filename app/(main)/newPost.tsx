@@ -18,9 +18,9 @@ import Avatar from "@/components/Avatar";
 import { hp, wp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
 import { useAuth } from "@/contexts/AuthContext";
-import { PostWithUser, PostWithUserAndComments, UserType } from "@/types";
+import { UserType } from "@/types";
 import RichTextEditor from "@/components/RichTextEditor";
-import { Routes, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Icon from "@/assets/icons";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
@@ -34,7 +34,7 @@ type PostData = {
   id?: string;
   file: string | ImagePickerAsset | null;
   body: string;
-  userId: string;
+  user_id: string;
 };
 
 const newPost = () => {
@@ -116,7 +116,7 @@ const newPost = () => {
     let data: PostData = {
       file: file,
       body: bodyRef.current,
-      userId: user?.id,
+      user_id: user?.id,
     };
 
     if (post && post.id) {

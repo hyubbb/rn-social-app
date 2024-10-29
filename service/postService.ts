@@ -76,7 +76,7 @@ export const fetchPostDetails = async (postId: string) => {
     const { data, error } = await supabase
       .from("posts")
       .select(
-        "*, user:users(id, name, image), postLikes(*), comments(*, user:users(id, name, image)),  commentCount:comments(count)"
+        "*, user:users(id, name, image), postLikes(*), comments(*, user:users(id, name, image)), commentCount:comments(count)"
       )
       .eq("id", postId)
       .order("created_at", { ascending: false, foreignTable: "comments" })
@@ -94,8 +94,8 @@ export const fetchPostDetails = async (postId: string) => {
 };
 
 export const createPostLike = async (postLike: {
-  userId: string;
-  postId: string;
+  user_id: string;
+  post_id: string;
 }) => {
   try {
     const { data, error } = await supabase
@@ -140,18 +140,18 @@ export const createComment = async (comment: {
 };
 
 export const deletePostLike = async ({
-  postId,
-  userId,
+  post_id,
+  user_id,
 }: {
-  postId: string;
-  userId: string;
+  post_id: string;
+  user_id: string;
 }) => {
   try {
     const { error } = await supabase
       .from("postLikes")
       .delete()
-      .eq("user_id", userId)
-      .eq("post_id", postId);
+      .eq("user_id", user_id)
+      .eq("post_id", post_id);
 
     if (error) {
       throw error;

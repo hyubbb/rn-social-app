@@ -12,7 +12,7 @@ const Loading = ({
   color = theme.colors.primary,
 }: LoadingProps) => {
   return (
-    <View style={{ justifyContent: "center", alignItems: "center" }}>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <ActivityIndicator size={size} color={color} />
     </View>
   );
