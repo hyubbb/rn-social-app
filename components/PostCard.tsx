@@ -1,5 +1,6 @@
 import {
   Alert,
+  Dimensions,
   Share,
   StyleSheet,
   Text,
@@ -22,7 +23,7 @@ import {
 } from "@/service/imageService";
 import Avatar from "./Avatar";
 import { theme } from "@/constants/themes";
-import { hp } from "@/helpers/commons";
+import { hp, wp } from "@/helpers/commons";
 import moment from "moment";
 import Icon from "@/assets/icons";
 import RenderHtml from "react-native-render-html";
@@ -40,6 +41,7 @@ type PostCardProps = {
   showDelete?: boolean;
   onDelete?: (postId: string) => void;
   onEdit?: (item: PostWithUserAndComments) => void;
+  listType?: "post" | "profile";
 };
 
 const PostCard = ({
@@ -51,6 +53,7 @@ const PostCard = ({
   showDelete = false,
   onDelete = () => {},
   onEdit = () => {},
+  listType = "post",
 }: PostCardProps) => {
   const { width } = useWindowDimensions();
   const [likes, setLikes] = useState<PostLike[]>([]);
@@ -140,61 +143,88 @@ const PostCard = ({
     : false;
 
   return (
-    <View style={[styles.container, hasShadow && shadowStyle]}>
-      <View style={styles.header}>
-        {/* userinfo and posttime */}
-        <View style={styles.userInfo}>
-          <TouchableOpacity
-            onPress={() => router.push(`/profile?userId=${item?.user?.id}`)}
-          >
-            <Avatar
-              size={hp(6)}
-              uri={item?.user?.image || ""}
-              rounded={theme.radius.md}
-            />
-          </TouchableOpacity>
-          <View style={styles.userInfoText}>
-            <Text style={styles.userName}>{item?.user?.name}</Text>
-            <Text style={styles.createdAt}>{createdAt}</Text>
+    <View
+      style={[
+        styles.container,
+        hasShadow && shadowStyle,
+        listType == "profile" && styles.listTypeProfile,
+      ]}
+    >
+      {listType == "post" && (
+        <View style={styles.header}>
+          {/* userinfo and posttime */}
+          <View style={styles.userInfo}>
+            <TouchableOpacity
+              onPress={() => router.push(`/profile?userId=${item?.user?.id}`)}
+            >
+              <Avatar
+                size={hp(6)}
+                uri={item?.user?.image || ""}
+                rounded={theme.radius.md}
+              />
+            </TouchableOpacity>
+            <View style={styles.userInfoText}>
+              <Text style={styles.userName}>{item?.user?.name}</Text>
+              <Text style={styles.createdAt}>{createdAt}</Text>
+            </View>
           </View>
-        </View>
-        {showMoreIcon && (
-          <TouchableOpacity onPress={openPostDetails}>
-            <Icon
-              name='ellipsis-vertical'
-              size={20}
-              color={theme.colors.text}
-            />
-          </TouchableOpacity>
-        )}
-
-        {showDelete && currentUser.id == item?.user_id && (
-          <View style={styles.actions}>
-            <TouchableOpacity onPress={() => onEdit(item)}>
+          {showMoreIcon && (
+            <TouchableOpacity onPress={openPostDetails}>
               <Icon
-                name='pencil-outline'
-                size={hp(2.5)}
+                name='ellipsis-vertical'
+                size={20}
                 color={theme.colors.text}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handlePostDelete}>
-              <Icon
-                name='trash-outline'
-                size={hp(2.5)}
-                color={theme.colors.rose}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+          )}
 
-      {/* content */}
-      <View style={styles.content}>
-        <View style={styles.postBody}>
-          {item?.body && (
-            <RenderHtml contentWidth={width} source={{ html: item?.body }} />
+          {showDelete && currentUser.id == item?.user_id && (
+            <View style={styles.actions}>
+              <TouchableOpacity onPress={() => onEdit(item)}>
+                <Icon
+                  name='pencil-outline'
+                  size={hp(2.5)}
+                  color={theme.colors.text}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handlePostDelete}>
+                <Icon
+                  name='trash-outline'
+                  size={hp(2.5)}
+                  color={theme.colors.rose}
+                />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
+      )}
+
+      {/* content */}
+      <View
+        style={[
+          styles.content,
+          listType == "profile" && styles.listTypeProfileContent,
+        ]}
+      >
+        {listType == "post"
+          ? item?.body && (
+              <View style={styles.postBody}>
+                <RenderHtml
+                  contentWidth={width}
+                  source={{ html: item?.body }}
+                />
+              </View>
+            )
+          : !item?.file &&
+            item?.body && (
+              <View style={styles.postBody}>
+                <RenderHtml
+                  contentWidth={width}
+                  source={{ html: item?.body }}
+                />
+              </View>
+            )}
+
         {/* post image */}
         {item?.file && (item?.file as string).includes("postImages") && (
           <Image
@@ -204,6 +234,7 @@ const PostCard = ({
             contentFit='cover'
           />
         )}
+
         {/* post video */}
         {item?.file && (item?.file as string).includes("postVideos") && (
           <Video
@@ -217,41 +248,43 @@ const PostCard = ({
       </View>
 
       {/* footer - like, comment, share */}
-      <View style={styles.footer}>
-        <View style={styles.footerItem}>
-          <TouchableOpacity onPress={onLike}>
-            <Icon
-              name={liked ? "heart" : "heart-outline"}
-              size={26}
-              color={liked ? theme.colors.rose : theme.colors.textLight}
-            />
-          </TouchableOpacity>
-          <Text>{likes?.length ?? 0}</Text>
-        </View>
-        <View style={styles.footerItem}>
-          <TouchableOpacity onPress={openPostDetails}>
-            <Icon
-              name='chatbox-outline'
-              size={24}
-              color={theme.colors.textLight}
-            />
-          </TouchableOpacity>
-          <Text>{item?.commentCount?.[0]?.count ?? 0}</Text>
-        </View>
-        <View style={styles.footerItem}>
-          {loading ? (
-            <Loading size='small' />
-          ) : (
-            <TouchableOpacity onPress={onShare}>
+      {listType == "post" && (
+        <View style={styles.footer}>
+          <View style={styles.footerItem}>
+            <TouchableOpacity onPress={onLike}>
               <Icon
-                name='share-outline'
+                name={liked ? "heart" : "heart-outline"}
+                size={26}
+                color={liked ? theme.colors.rose : theme.colors.textLight}
+              />
+            </TouchableOpacity>
+            <Text>{likes?.length ?? 0}</Text>
+          </View>
+          <View style={styles.footerItem}>
+            <TouchableOpacity onPress={openPostDetails}>
+              <Icon
+                name='chatbox-outline'
                 size={24}
                 color={theme.colors.textLight}
               />
             </TouchableOpacity>
-          )}
+            <Text>{item?.commentCount?.[0]?.count ?? 0}</Text>
+          </View>
+          <View style={styles.footerItem}>
+            {loading ? (
+              <Loading size='small' />
+            ) : (
+              <TouchableOpacity onPress={onShare}>
+                <Icon
+                  name='share-outline'
+                  size={24}
+                  color={theme.colors.textLight}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 };
@@ -262,13 +295,27 @@ const styles = StyleSheet.create({
   container: {
     gap: 10,
     marginBottom: 15,
-    borderRadius: theme.radius.xxl,
+    borderRadius: theme.radius.md,
     borderCurve: "continuous",
     padding: 10,
     paddingVertical: 12,
     backgroundColor: "white",
     borderWidth: 0.5,
     borderColor: theme.colors.darkLight,
+  },
+  listTypeProfile: {
+    padding: 0,
+    paddingVertical: 0,
+    margin: 0,
+    width: `${100 / 3.2}%`,
+    overflow: "hidden",
+    flexDirection: "row",
+    borderWidth: 1,
+  },
+  listTypeProfileContent: {
+    width: `${100}%`,
+    aspectRatio: 1,
+    gap: 0,
   },
   header: {
     flexDirection: "row",
@@ -293,15 +340,20 @@ const styles = StyleSheet.create({
     color: theme.colors.textLight,
   },
   content: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   postBody: {
+    flexDirection: "row",
     gap: 10,
+    padding: 5,
   },
   postMedia: {
     width: "100%",
     height: hp(30),
-    borderRadius: theme.radius.lg,
+    aspectRatio: 1,
+    borderRadius: theme.radius.md,
   },
   footer: {
     flexDirection: "row",

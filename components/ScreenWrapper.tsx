@@ -12,7 +12,6 @@ const ScreenWrapper = ({
 }) => {
   const { top } = useSafeAreaInsets();
   const paddingTop = top > 0 ? top + 5 : 30;
-
   return (
     <View
       style={{

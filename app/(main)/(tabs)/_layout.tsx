@@ -13,6 +13,7 @@ export default function TabsLayout() {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "messageList") {
             iconName = focused ? "chatbubble" : "chatbubble-outline";
+          } else {
           }
           // You can return any component that you like here!
           return (

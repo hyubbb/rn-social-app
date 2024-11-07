@@ -100,7 +100,12 @@ const Message = () => {
         <FlatList
           data={messageData}
           ref={flatListRef}
-          renderItem={({ item }) => <MessageItem item={item} />}
+          renderItem={({ item, index }) => (
+            <MessageItem
+              item={item}
+              prevItem={index > 0 ? messageData[index - 1] : null}
+            />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messageContents}
           ListEmptyComponent={() => (
@@ -111,7 +116,6 @@ const Message = () => {
           )}
           onContentSizeChange={() => {
             if (messageData && messageData.length > 0) {
-              // 데이터 존재 여부 체크
               flatListRef.current?.scrollToIndex({
                 index: messageData.length - 1,
               });
@@ -119,7 +123,6 @@ const Message = () => {
           }}
           onScrollToIndexFailed={() => {
             if (messageData && messageData.length > 0) {
-              // 데이터 존재 여부 체크
               const wait = new Promise((resolve) => setTimeout(resolve, 300));
               wait.then(() => {
                 flatListRef.current?.scrollToIndex({
@@ -130,10 +133,9 @@ const Message = () => {
           }}
         />
 
-        {/* KeyboardAvoidingView를 inputContainer 주변에 추가 */}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS와 Android의 동작 차이를 고려
-          keyboardVerticalOffset={hp(5)} // 헤더 높이에 맞춰 적절히 조정
+          keyboardVerticalOffset={hp(5)}
         >
           <View style={styles.inputContainer}>
             <Input
@@ -178,7 +180,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "flex-end",
     padding: 10,
-    borderRadius: theme.radius.md,
     backgroundColor: theme.colors.darkLight,
   },
   inputContainer: {

@@ -79,7 +79,7 @@ export const fetchPostDetails = async (postId: string) => {
         "*, user:users(id, name, image), postLikes(*), comments(*, user:users(id, name, image)), commentCount:comments(count)"
       )
       .eq("id", postId)
-      .order("created_at", { ascending: false, foreignTable: "comments" })
+      .order("created_at", { ascending: true, foreignTable: "comments" })
       .single();
 
     if (error) {
@@ -90,6 +90,39 @@ export const fetchPostDetails = async (postId: string) => {
   } catch (error) {
     console.log("fetchPostDetails 오류", error);
     return { success: false, msg: "fetchPostDetails 오류", data: [] };
+  }
+};
+
+export const fetchPostDaily = async (
+  userId: string,
+  year: number,
+  month: number
+) => {
+  try {
+    // 해당 월의 시작일과 다음 달 시작일 계산
+    const startDate = new Date(year, month - 1, 1).toISOString(); // month는 0부터 시작하므로 -1
+    const endDate = new Date(year, month, 1).toISOString(); // 다음 달 시작일
+    console.log(startDate, endDate);
+
+    const { data, error } = await supabase
+      .from("posts")
+      .select(
+        "*, user:users(id, name, image), postLikes(*), commentCount:comments(count)"
+        // "*, user:users(id, name, image), postLikes(*), comments(*, user:users(id, name, image)), commentCount:comments(count)"
+      )
+      .eq("user_id", userId)
+      .gte("created_at", startDate) // 시작일 이후
+      .lt("created_at", endDate) // 다음 달 시작일 이전
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, msg: "fetchPostDaily 성공", data };
+  } catch (error) {
+    console.log("fetchPostDaily 오류", error);
+    return { success: false, msg: "fetchPostDaily 오류", data: [] };
   }
 };
 

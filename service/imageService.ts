@@ -78,3 +78,28 @@ export const getFilePath = (folderName: string, isImage: boolean) => {
   const extension = isImage ? ".png" : ".mp4";
   return `/${folderName}/${new Date().getTime()}${extension}`;
 };
+
+export const isLocalFile = (file: any) => {
+  if (typeof file == "object") return true;
+};
+
+export const getFileType = (file: any) => {
+  if (!file) return null;
+  if (isLocalFile(file)) {
+    return file.type;
+  }
+
+  // check image or video for remote file
+  if (file.includes("postImage")) {
+    return "Image";
+  }
+  return "Video";
+};
+
+export const getFileUri = (file: any) => {
+  if (!file) return null;
+  if (isLocalFile(file)) {
+    return file.uri;
+  }
+  return getSupabaseFileUrl(file)?.uri;
+};
