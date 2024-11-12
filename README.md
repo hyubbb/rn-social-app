@@ -9,7 +9,7 @@ SNS기능과 DM과 같은 채팅기능을 구현하였습니다.
 ![1112-ezgif com-video-to-gif-converter (2)](https://github.com/user-attachments/assets/15588266-77f3-40d6-89db-9761d4113775)
 
  
- <img width="741" alt="image" src="[https://github.com/user-attachments/assets/3001ee49-e656-42f1-aea9-6c4ddaec2127](https://github.com/user-attachments/assets/15588266-77f3-40d6-89db-9761d4113775)">
+ <img width="741" alt="image" src="https://github.com/user-attachments/assets/3001ee49-e656-42f1-aea9-6c4ddaec2127">
 
 
 # 구현내역
