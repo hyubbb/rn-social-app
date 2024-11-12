@@ -14,9 +14,15 @@ SNS기능과 DM과 같은 채팅기능을 구현하였습니다.
 
 - SNS실시간 업데이트
   - supabase의 realtime 이벤트를 이용하여 실시간 업데이트 구현
-- DM 채팅
+- DM 실시간 메세지 통신
   - Socket.io를 사용하여 실시간 통신 구현
+- 무한 스크롤 기능
+  - flatlist를 사용하여 무한 스크롤 기능 구현
 -  게시글 필터 
   - 캘린더 기능으로 날짜별 게시글 확인가능
 - 택스트에디터
   - richeditor로 에디터구현
+- 이미지 저장
+  - supabase database를 이용해서 데이터 저장
+- 통신서버
+  - AWS-EC2에 express서버를 구동
