@@ -9,7 +9,6 @@ import React, { useEffect, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
 import Loading from "@/components/Loading";
-import { useAuth } from "@/contexts/AuthContext";
 import { fetchChatRooms } from "@/service/MessageService";
 import { MessageListType } from "@/types";
 import { hp } from "@/helpers/commons";
@@ -17,9 +16,10 @@ import { useRouter } from "expo-router";
 import Avatar from "@/components/Avatar";
 import { theme } from "@/constants/themes";
 import moment from "moment";
+import useUserStore from "@/store/userStore";
 
 const MessageList = () => {
-  const { user } = useAuth();
+  const { user } = useUserStore((state: any) => state);
   const router = useRouter();
   const [messageList, setMessageList] = useState<MessageListType[]>([]);
   const [hasMore, setHasMore] = useState(true);

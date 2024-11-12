@@ -153,7 +153,6 @@ export const createComment = async (comment: {
   post_id: string;
   text: string;
 }) => {
-  console.log("comment", comment);
   try {
     const { data, error } = await supabase
       .from("comments")

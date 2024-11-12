@@ -3,15 +3,15 @@ import React, { useEffect, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
 import { fetchNotifications } from "@/service/NotificationService";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import NotificationItem from "@/components/NotificationItem";
 import { hp, wp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
+import useUserStore from "@/store/userStore";
 
 const Notification = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
-  const { user } = useAuth();
+  const { user } = useUserStore((state: any) => state);
   const router = useRouter();
 
   useEffect(() => {

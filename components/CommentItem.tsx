@@ -56,7 +56,7 @@ const CommentItem = ({
                 color: theme.colors.textDark,
               }}
             >
-              {comment.user.name}
+              {comment?.user?.name}
             </Text>
             <Text
               style={{

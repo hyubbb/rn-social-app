@@ -23,9 +23,11 @@ type CalendarProps = {
 
 const Calendar = ({ posts: postData, userId }: CalendarProps) => {
   const [posts, setPosts] = useState<PostWithUserAndComments[]>(postData);
+  const [datePosts, setDatePosts] = useState<PostWithUserAndComments[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const router = useRouter();
   const { width } = useWindowDimensions();
+
   useEffect(() => {
     const fetchPost = async () => {
       const result = await fetchPostDaily(
@@ -77,11 +79,17 @@ const Calendar = ({ posts: postData, userId }: CalendarProps) => {
       .toString()
       .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
 
-    const post = posts.find(
+    const postsForDate = posts.find(
       (post) => post.created_at?.slice(0, 10) === dateString
     );
 
-    return post;
+    // 기존 datePosts를 유지하면서 새로운 날짜의 게시물 추가
+    // setDatePosts((prev) => ({
+    //   ...prev,
+    //   [day]: [...(prev[day] || []), ...postsForDate],
+    // }));
+
+    return postsForDate;
   };
 
   const postDetail = (day: number | null) => {

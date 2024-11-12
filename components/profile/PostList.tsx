@@ -6,9 +6,7 @@ import { PostWithUserAndComments, UserType } from "@/types";
 import { hp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
 import ProfileHeader from "./ProfileHeader";
-import ProfileCalendar from "./ProfileCalendar";
 import Calendar from "@/app/(main)/calendar";
-import Dialy from "@/app/(main)/dialy";
 
 type PostListProps = {
   posts: PostWithUserAndComments[];
@@ -50,29 +48,15 @@ const PostList = ({
       }}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id + ""}
-      renderItem={
-        ({ item }) =>
-          filterType == "list" ? (
-            <PostCard
-              item={item}
-              currentUser={userData}
-              router={router}
-              listType='profile'
-            />
-          ) : null
-        // <Calendar
-        //   posts={newData}
-        //   currentMonth={currentMonth}
-        //   setCurrentMonth={setCurrentMonth}
-        // />
-
-        // <ProfileCalendar
-        //   userData={userData as UserType}
-        //   router={router}
-        //   currentUser={currentUser as UserType}
-        //   posts={posts}
-        //   setFilterType={(v: "calendar" | "list") => setFilterType(v)}
-        // />
+      renderItem={({ item }) =>
+        filterType == "list" ? (
+          <PostCard
+            item={item}
+            currentUser={userData}
+            router={router}
+            listType='profile'
+          />
+        ) : null
       }
       onEndReached={() => {
         // 최하단에 도달시

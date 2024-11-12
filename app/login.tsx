@@ -52,32 +52,31 @@ const login = () => {
         {/* welcome */}
         <View>
           <Text style={styles.welcomeText}>Hello,</Text>
-          <Text style={styles.welcomeText}>Welcome Back !</Text>
+          <Text style={styles.welcomeText}>환영합니다 !</Text>
         </View>
         {/* form */}
         <View style={styles.form}>
-          <Text style={{ fontSize: hp(1.5), color: theme.colors.text }}>
-            Please login to continue
-          </Text>
           <Input
             icon={<Icon name='mail' size={26} />}
-            placeholder='Enter your email'
+            placeholder='admin@gmail.com 으로 로그인 하세요'
             onChangeText={(value: string) => (emailRef.current = value)}
             keyboardType='email-address'
           />
           <Input
             icon={<Icon name='lock-open-outline' size={26} />}
-            placeholder='Enter your password'
+            placeholder='admin1'
             secureTextEntry={true}
             onChangeText={(value: string) => (passwordRef.current = value)}
           />
-          <Text style={styles.forgotPassword}>Forgot Password ?</Text>
+          <Text style={styles.forgotPassword}>
+            비밀번호가 기억이 나지 않는다면 ?
+          </Text>
           {/* button */}
           <Button title='Login' loading={loading} onPress={onSubmit} />
         </View>
         {/* footer */}
         <View style={styles.footer}>
-          <Text style={[styles.footerText]}>Don't have an account?</Text>
+          <Text style={[styles.footerText]}>계정 생성</Text>
           <Pressable onPress={() => router.push("/signUp")}>
             <Text
               style={[

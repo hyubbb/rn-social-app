@@ -12,7 +12,6 @@ import ScreenWrapper from "@/components/ScreenWrapper";
 import { hp, wp } from "@/helpers/commons";
 import Header from "@/components/Header";
 import { theme } from "@/constants/themes";
-import { useAuth } from "@/contexts/AuthContext";
 import { UserType } from "@/types";
 import { getUserImageSrc, uploadImage } from "@/service/imageService";
 import Icon from "@/assets/icons";
@@ -21,10 +20,11 @@ import Button from "@/components/Button";
 import { updateUserData } from "@/service/userService";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import useUserStore from "@/store/userStore";
 
 const EditProfile = () => {
   // 사용자 인증 컨텍스트에서 사용자 데이터 가져오기
-  const { user: userData, setUserData } = useAuth();
+  const { user: userData, setUserData } = useUserStore((state: any) => state);
   const currentUser = userData as UserType;
 
   const [loading, setLoading] = useState(false);

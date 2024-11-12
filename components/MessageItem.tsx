@@ -3,8 +3,8 @@ import React from "react";
 import { MessageType, MessageTypeWithUser } from "@/types";
 import Avatar from "./Avatar";
 import { wp } from "@/helpers/commons";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
+import useUserStore from "@/store/userStore";
 
 const MessageItem = ({
   item,
@@ -13,7 +13,7 @@ const MessageItem = ({
   item: MessageTypeWithUser;
   prevItem: MessageTypeWithUser | null;
 }) => {
-  const { user } = useAuth();
+  const { user } = useUserStore((state: any) => state);
   const router = useRouter();
   const isMine = item.user_id == user?.id;
   const showUserInfo = !prevItem || prevItem.user.id !== item.user.id;

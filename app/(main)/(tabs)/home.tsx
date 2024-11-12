@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
-import { useAuth } from "@/contexts/AuthContext";
 import { hp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
 import Icon from "@/assets/icons";
@@ -21,6 +20,8 @@ import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/service/userService";
+import useUserStore from "@/store/userStore";
+import usePostStore from "@/store/postStore";
 
 LogBox.ignoreLogs([
   "Warning: TRenderEngineProvider:",
@@ -29,10 +30,14 @@ LogBox.ignoreLogs([
 ]);
 var limit = 0;
 const Home = () => {
-  const { user, setAuth } = useAuth();
+  const { user } = useUserStore((state: any) => state);
+  // const { posts: postsStore, setPosts: setPostsStore } = usePostStore(
+  //   (state: any) => state
+  // );
+  const { posts, setPosts } = usePostStore((state: any) => state);
   const userData = user as UserType;
   const router = useRouter();
-  const [posts, setPosts] = useState<PostWithUserAndComments[]>([]);
+  // const [posts, setPosts] = useState<PostWithUserAndComments[]>([]);
   const [notifications, setNotifications] = useState<number>(0);
   const [hasMore, setHasMore] = useState(true);
 
@@ -43,21 +48,36 @@ const Home = () => {
       // fetchPost할 때, posts&user이니까
       // payload로 받은 post데이터에 user데이터 병합
       let newPost = { ...payload.new };
-      let res = await getUserData(newPost.userId);
+      let res = await getUserData(newPost.user_id);
       newPost.user = res.success ? res.data : {};
-      setPosts((prev) => [newPost, ...prev]);
+      // setPosts((prev) => [newPost, ...prev]);
+      setPosts([newPost, ...posts]);
     }
     if (payload.eventType == "DELETE" && payload?.old?.id) {
-      setPosts((prev) => prev.filter((post) => post.id !== payload.old.id));
+      // setPosts((prev) => prev.filter((post) => post.id !== payload.old.id));
+      setPosts(
+        posts.filter(
+          (post: PostWithUserAndComments) => post.id !== payload.old.id
+        )
+      );
     }
 
     if (payload.eventType == "UPDATE" && payload?.new?.id) {
-      setPosts((prev) =>
-        prev.map((post) =>
+      // setPosts((prev) =>
+      //   prev.map((post) =>
+      //     post.id == payload.new.id ? { ...post, ...payload.new } : post
+      //   )
+      // );
+
+      console.log("updateeㄷ");
+
+      setPosts(
+        posts.map((post: PostWithUserAndComments) =>
           post.id == payload.new.id ? { ...post, ...payload.new } : post
         )
       );
     }
+    // setPostsStore(posts);
   };
 
   const handleNotificationEvent = async (payload: any) => {
@@ -115,6 +135,7 @@ const Home = () => {
         setHasMore(false);
       }
       setPosts(res.data);
+      // setPostsStore(res.data);
     }
   };
 

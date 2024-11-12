@@ -111,7 +111,6 @@ export const sendMessage = async ({
       })
       .select("*")
       .single();
-    console.log("messageData", messageData);
 
     if (error) throw error;
 
@@ -122,12 +121,18 @@ export const sendMessage = async ({
   }
 };
 
-export const fetchMessages = async (roomId: string) => {
+export const fetchMessages = async (roomId: string, page: number = 1) => {
+  const pageSize = 20; // 한 페이지당 가져올 메시지 수
+  const offset = (page - 1) * pageSize; // 가져올 데이터의 시작 위치
+
   try {
     const { data, error } = await supabase
       .from("messages")
       .select("*, user:user_id(*)")
-      .eq("room_id", roomId);
+      .eq("room_id", roomId)
+      .order("created_at", { ascending: false }) // 최신 메시지 순으로 정렬
+      .range(offset, offset + pageSize - 1); // offset을 설정하여 20개씩 끊어서 가져오기
+
     if (error) throw error;
 
     return { success: true, msg: "fetchMessages 성공", data };

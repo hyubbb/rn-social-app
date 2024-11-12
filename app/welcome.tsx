@@ -26,21 +26,14 @@ const welcome = () => {
           resizeMode='contain'
         />
         {/* title */}
-        <View style={{ gap: 20 }}>
-          <Text style={styles.title}> Link up</Text>
-
-          <Text style={styles.subTitle}>
-            Where every thought finds a home and every image tells a story
-          </Text>
+        <View style={{ gap: 20, marginBottom: hp(5) }}>
+          <Text style={styles.title}> SNS + CHAT</Text>
         </View>
         {/* footer */}
         <View style={styles.footer}>
-          <Button
-            title='Getting Started'
-            onPress={() => router.push("/signUp")}
-          />
+          <Button title='Sign Up' onPress={() => router.push("/signUp")} />
           <View style={styles.buttonTextContainer}>
-            <Text style={styles.loginText}>Already have an account?</Text>
+            <Text style={styles.loginText}>이미 계정이 존재 하다면?</Text>
             <Pressable onPress={() => router.push("/login")}>
               <Text
                 style={[
@@ -67,8 +60,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "flex-end",
     backgroundColor: "white",
+    marginBottom: hp(5),
   },
   welcomeImage: {
     width: wp(70),

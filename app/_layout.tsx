@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import { Stack, Tabs, useRouter } from "expo-router";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/service/userService";
 import { SupabaseUser } from "@/types";
 import { LogBox } from "react-native";
 import { SocketProvider } from "@/socket/socket";
+import useUserStore from "@/store/userStore";
 
 LogBox.ignoreLogs([
   "Warning: TRenderEngineProvider:",
@@ -14,16 +14,14 @@ LogBox.ignoreLogs([
 ]);
 const _layout = () => {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <MainLayout />
-      </SocketProvider>
-    </AuthProvider>
+    <SocketProvider>
+      <MainLayout />
+    </SocketProvider>
   );
 };
 
 const MainLayout = () => {
-  const { setAuth, setUserData } = useAuth();
+  const { setAuth, setUserData } = useUserStore((state: any) => state);
   const router = useRouter();
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
@@ -42,7 +40,11 @@ const MainLayout = () => {
   const updateUserData = async (user: SupabaseUser) => {
     let res = await getUserData(user?.id);
     if (res.success) {
-      setUserData({ ...res.data, email: user.email });
+      setUserData({
+        ...res.data,
+        email: user.email,
+        name: user.user_metadata.name,
+      });
     }
   };
 

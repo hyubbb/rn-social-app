@@ -26,7 +26,7 @@ const signUp = () => {
 
   const onSubmit = async () => {
     if (!nameRef.current || !passwordRef.current || !emailRef.current) {
-      Alert.alert("Sign Up", "Please enter all fields");
+      Alert.alert("회원가입", "모든 필드를 입력해주세요");
       return;
     }
 
@@ -52,7 +52,7 @@ const signUp = () => {
     console.log("error : ", error);
 
     if (error) {
-      Alert.alert("Sign Up", error.message);
+      Alert.alert("회원가입", error.message);
     }
   };
 
@@ -63,36 +63,35 @@ const signUp = () => {
         <BackButton router={router} />
         {/* welcome */}
         <View>
-          <Text style={styles.welcomeText}>Let's</Text>
-          <Text style={styles.welcomeText}>Get Started</Text>
+          <Text style={styles.welcomeText}>회원가입</Text>
         </View>
         {/* form */}
         <View style={styles.form}>
           <Text style={{ fontSize: hp(1.5), color: theme.colors.text }}>
-            Please enter your details to create an account
+            회원가입을 위해 모든 필드를 입력해주세요
           </Text>
           <Input
             icon={<Icon name='person-outline' size={26} />}
-            placeholder='Enter your Id'
+            placeholder='아이디'
             onChangeText={(value: string) => (nameRef.current = value)}
           />
           <Input
             icon={<Icon name='mail' size={26} />}
-            placeholder='Enter your Email'
+            placeholder='이메일'
             onChangeText={(value: string) => (emailRef.current = value)}
           />
           <Input
             icon={<Icon name='lock-open-outline' size={26} />}
-            placeholder='Enter your Password'
+            placeholder='비밀번호'
             secureTextEntry={true}
             onChangeText={(value: string) => (passwordRef.current = value)}
           />
           {/* button */}
-          <Button title='Sign Up' loading={loading} onPress={onSubmit} />
+          <Button title='회원가입' loading={loading} onPress={onSubmit} />
         </View>
         {/* footer */}
         <View style={styles.footer}>
-          <Text style={[styles.footerText]}>Already have an account!</Text>
+          <Text style={[styles.footerText]}>이미 계정이 존재 하다면?</Text>
           <Pressable onPress={() => router.push("/login")}>
             <Text
               style={[

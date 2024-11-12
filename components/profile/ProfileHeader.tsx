@@ -80,7 +80,6 @@ const ProfileHeader = ({
   if (isLoading) {
     return <Loading />;
   }
-
   return (
     <View style={styles.header}>
       <View>
@@ -203,6 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 20,
   },
+
   logoutButton: {
     position: "absolute",
     right: 0,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     height: hp(4),
     justifyContent: "center",
     alignItems: "center",
-    right: wp(32),
+    left: 0,
     bottom: 0,
     backgroundColor: "white",
     padding: 4,
@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     gap: 10,
+    paddingVertical: 8,
   },
   userName: {
     fontSize: hp(3),

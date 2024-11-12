@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 const usePostStore = create((set) => ({
   posts: [],
-  setPosts: (posts: PostWithUserAndComments[]) => set({ posts }),
+  setPosts: (postsData: PostWithUserAndComments[]) => set({ posts: postsData }),
 }));
 
 export default usePostStore;

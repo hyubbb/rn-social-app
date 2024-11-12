@@ -1,7 +1,6 @@
 import {
   Alert,
   Image,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,7 +16,6 @@ import Header from "@/components/Header";
 import Avatar from "@/components/Avatar";
 import { hp, wp } from "@/helpers/commons";
 import { theme } from "@/constants/themes";
-import { useAuth } from "@/contexts/AuthContext";
 import { UserType } from "@/types";
 import RichTextEditor from "@/components/RichTextEditor";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -29,6 +27,7 @@ import { ImagePickerAsset } from "expo-image-picker";
 import { ResizeMode, Video } from "expo-av";
 import { createOrUpdatePost } from "@/service/postService";
 import { RichEditor } from "react-native-pell-rich-editor";
+import useUserStore from "@/store/userStore";
 
 type PostData = {
   id?: string;
@@ -38,8 +37,7 @@ type PostData = {
 };
 
 const newPost = () => {
-  const { user: userData } = useAuth();
-  const user = userData as UserType;
+  const { user } = useUserStore((state: any) => state);
   const bodyRef = useRef<string>("");
   const editorRef = useRef<RichEditor | null>(null);
   const scrollViewRef = useRef<ScrollView | null>(null);

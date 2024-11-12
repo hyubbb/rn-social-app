@@ -1,6 +1,6 @@
 import {
   Alert,
-  Dimensions,
+  Pressable,
   Share,
   StyleSheet,
   Text,
@@ -9,18 +9,9 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import {
-  PostLike,
-  PostWithUser,
-  PostWithUserAndComments,
-  UserType,
-} from "@/types";
+import { PostLike, PostWithUserAndComments, UserType } from "@/types";
 import { Router } from "expo-router";
-import {
-  downloadFile,
-  getLocalFilePath,
-  getSupabaseFileUrl,
-} from "@/service/imageService";
+import { downloadFile, getSupabaseFileUrl } from "@/service/imageService";
 import Avatar from "./Avatar";
 import { theme } from "@/constants/themes";
 import { hp, wp } from "@/helpers/commons";
@@ -31,6 +22,7 @@ import { Image } from "expo-image";
 import { ResizeMode, Video } from "expo-av";
 import { createPostLike, deletePostLike } from "@/service/postService";
 import Loading from "./Loading";
+import usePostStore from "@/store/postStore";
 
 type PostCardProps = {
   item: PostWithUserAndComments;
@@ -58,6 +50,7 @@ const PostCard = ({
   const { width } = useWindowDimensions();
   const [likes, setLikes] = useState<PostLike[]>([]);
   const [loading, setLoading] = useState(false);
+  const { posts, setPosts } = usePostStore((state: any) => state);
 
   const shadowStyle = {
     shadowOffset: {
@@ -71,7 +64,7 @@ const PostCard = ({
 
   useEffect(() => {
     if (item?.postLikes) setLikes(item?.postLikes);
-  }, []);
+  }, [item]);
 
   const openPostDetails = () => {
     if (!showMoreIcon) return null;
@@ -94,17 +87,35 @@ const PostCard = ({
       let updatedLikes = likes.filter(
         (like) => like.user_id !== currentUser.id
       );
-      setLikes([...updatedLikes]);
+
       let res = await deletePostLike(data);
       if (!res.success) {
         return Alert.alert("알림", "오류가 발생했습니다.");
+      } else {
+        setLikes([...updatedLikes]);
+
+        setPosts(
+          posts.map((post: PostWithUserAndComments) =>
+            post.id == item.id ? { ...post, postLikes: updatedLikes } : post
+          )
+        );
       }
     } else {
       // 좋아요 추가
       let res = await createPostLike(data);
-      setLikes([...likes, res.data]);
       if (!res.success) {
         return Alert.alert("알림", "오류가 발생했습니다.");
+      } else {
+        setLikes([...likes, res.data]);
+        // console.log(res.data);
+
+        setPosts(
+          posts.map((post: PostWithUserAndComments) =>
+            post.id == item.id
+              ? { ...post, postLikes: [...likes, res.data] }
+              : post
+          )
+        );
       }
     }
   };
@@ -136,6 +147,17 @@ const PostCard = ({
     ]);
   };
 
+  const postDetail = (postId: string) => {
+    if (listType == "post") return;
+
+    router.push({
+      pathname: "/postDetails",
+      params: {
+        postId,
+      },
+    });
+  };
+
   const createdAt = moment(item?.created_at).format("MM/DD hh:mm");
 
   const liked = likes?.filter((like) => like?.user_id === currentUser?.id)[0]
@@ -152,7 +174,6 @@ const PostCard = ({
     >
       {listType == "post" && (
         <View style={styles.header}>
-          {/* userinfo and posttime */}
           <View style={styles.userInfo}>
             <TouchableOpacity
               onPress={() => router.push(`/profile?userId=${item?.user?.id}`)}
@@ -200,52 +221,46 @@ const PostCard = ({
       )}
 
       {/* content */}
-      <View
-        style={[
-          styles.content,
-          listType == "profile" && styles.listTypeProfileContent,
-        ]}
-      >
-        {listType == "post"
-          ? item?.body && (
-              <View style={styles.postBody}>
-                <RenderHtml
-                  contentWidth={width}
-                  source={{ html: item?.body }}
-                />
-              </View>
-            )
-          : !item?.file &&
-            item?.body && (
-              <View style={styles.postBody}>
-                <RenderHtml
-                  contentWidth={width}
-                  source={{ html: item?.body }}
-                />
-              </View>
-            )}
+      <Pressable onPress={() => postDetail(item.id as string)}>
+        <View
+          style={[
+            styles.content,
+            listType == "profile" && styles.listTypeProfileContent,
+          ]}
+        >
+          {listType == "post" && item?.body && (
+            <View style={styles.postBody}>
+              <RenderHtml contentWidth={width} source={{ html: item?.body }} />
+            </View>
+          )}
 
-        {/* post image */}
-        {item?.file && (item?.file as string).includes("postImages") && (
-          <Image
-            source={getSupabaseFileUrl(item?.file as string)}
-            style={styles.postMedia}
-            transition={100}
-            contentFit='cover'
-          />
-        )}
+          {listType == "profile" && !item?.file && item?.body && (
+            <View style={styles.postBodyProfile}>
+              <RenderHtml contentWidth={width} source={{ html: item?.body }} />
+            </View>
+          )}
+          {/* post image */}
+          {item?.file && (item?.file as string).includes("postImages") && (
+            <Image
+              source={getSupabaseFileUrl(item?.file as string)}
+              style={styles.postMedia}
+              transition={100}
+              contentFit='cover'
+            />
+          )}
 
-        {/* post video */}
-        {item?.file && (item?.file as string).includes("postVideos") && (
-          <Video
-            style={[styles.postMedia, { height: hp(30) }]}
-            source={getSupabaseFileUrl(item?.file as string)}
-            useNativeControls
-            resizeMode={ResizeMode.COVER}
-            isLooping
-          />
-        )}
-      </View>
+          {/* post video */}
+          {item?.file && (item?.file as string).includes("postVideos") && (
+            <Video
+              style={[styles.postMedia, { height: hp(30) }]}
+              source={getSupabaseFileUrl(item?.file as string)}
+              useNativeControls
+              resizeMode={ResizeMode.COVER}
+              isLooping
+            />
+          )}
+        </View>
+      </Pressable>
 
       {/* footer - like, comment, share */}
       {listType == "post" && (
@@ -347,6 +362,15 @@ const styles = StyleSheet.create({
   postBody: {
     flexDirection: "row",
     gap: 10,
+    padding: 5,
+  },
+
+  postBodyProfile: {
+    flex: 1,
+    fontSize: hp(1.8),
+    justifyContent: "center",
+    gap: 10,
+    alignItems: "center",
     padding: 5,
   },
   postMedia: {

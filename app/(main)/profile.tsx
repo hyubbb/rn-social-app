@@ -1,15 +1,6 @@
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StatusBar, StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { hp, wp } from "@/helpers/commons";
-import { useAuth } from "@/contexts/AuthContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { theme } from "@/constants/themes";
 import { PostWithUserAndComments, UserType } from "@/types";
@@ -18,14 +9,15 @@ import { getUserData } from "@/service/userService";
 import usePostStore from "@/store/postStore";
 import PostList from "@/components/profile/PostList";
 import ScreenWrapper from "@/components/ScreenWrapper";
+import useUserStore from "@/store/userStore";
 
 const Profile = () => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser } = useUserStore((state: any) => state);
   const router = useRouter();
   const [hasMore, setHasMore] = useState(true);
   const [posts, setPosts] = useState<PostWithUserAndComments[]>([]);
   const [userData, setUserData] = useState<UserType | null>(null);
-  const [limit, setLimit] = useState(6);
+  const [limit, setLimit] = useState(15);
   const { userId } = useLocalSearchParams(); // 다른 유저의 정보를 볼때만 존재하는 값
   const [filterType, setFilterType] = useState<"list" | "calendar">("list");
   const setPostStoreData = usePostStore((state: any) => state.setPosts);
@@ -41,8 +33,10 @@ const Profile = () => {
   }, [userId, currentUser]);
 
   useEffect(() => {
-    getPosts();
-  }, []);
+    if (userData && hasMore) {
+      getPosts();
+    }
+  }, [userData, hasMore]);
 
   const fetchUserData = async (userId: string) => {
     let res = await getUserData(userId);
@@ -56,9 +50,7 @@ const Profile = () => {
     let res = await fetchPosts(limit, userData.id);
     if (res.success) {
       // 기존의 post갯수와 새로불러온 데이터의 갯수가 같으면 더이상의 업데이트가 존재하지 않는다는 것
-      console.log(posts.length, res.data.length);
-      if (posts.length == res.data.length) {
-        console.log("=============");
+      if (posts.length == res.data.length || res.data.length < 15) {
         setHasMore(false);
         return;
       }
@@ -68,10 +60,6 @@ const Profile = () => {
       setLimit((prev) => prev + 4);
     }
   };
-
-  // if (!userData || isLoading) {
-  //   return <Loading />;
-  // }
 
   return (
     <ScreenWrapper bg='white'>
@@ -88,16 +76,6 @@ const Profile = () => {
           filterType={filterType}
           setFilterType={(v: "calendar" | "list") => setFilterType(v)}
         />
-
-        {/* : (
-          <ProfileCalendar
-            userData={userData as UserType}
-            router={router}
-            currentUser={currentUser as UserType}
-            posts={posts}
-            setFilterType={(v: "calendar" | "list") => setFilterType(v)}
-          />
-        )} */}
       </View>
     </ScreenWrapper>
   );

@@ -16,7 +16,6 @@ import {
   fetchPostDetails,
 } from "@/service/postService";
 import PostCard from "@/components/PostCard";
-import { useAuth } from "@/contexts/AuthContext";
 import { CommentType, PostWithUserAndComments, UserType } from "@/types";
 import Loading from "@/components/Loading";
 import Input from "@/components/Input";
@@ -27,11 +26,14 @@ import CommentItem from "@/components/CommentItem";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/service/userService";
 import { createNotification } from "@/service/NotificationService";
+import useUserStore from "@/store/userStore";
+import usePostStore from "@/store/postStore";
 
 const PostDetails = () => {
   const router = useRouter();
   const { postId, commentId } = useLocalSearchParams();
-  const { user } = useAuth();
+  const { user } = useUserStore((state: any) => state);
+  const { posts, setPosts } = usePostStore((state: any) => state);
 
   const [startLoading, setStartLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,7 @@ const PostDetails = () => {
         if (!prev) return prev;
         return {
           ...prev,
-          comments: [newComment, ...prev.comments],
+          comments: [...prev.comments, newComment],
         };
       });
     }
@@ -72,6 +74,7 @@ const PostDetails = () => {
       .subscribe();
     getPostDetails(postId as string);
     setStartLoading(false);
+
     return () => {
       supabase.removeChannel(dispathCommentEvent);
     };
@@ -102,9 +105,31 @@ const PostDetails = () => {
           data: JSON.stringify({ postId: post?.id, commentId: res.data.id }),
         };
 
-        setLoading(false);
         createNotification(notify);
       }
+
+      setPosts(
+        posts.map((post: PostWithUserAndComments) =>
+          post.id == postId
+            ? {
+                ...post,
+                commentCount: [{ count: post.commentCount[0].count + 1 }],
+              }
+            : post
+        )
+      );
+
+      setPost((prev) => {
+        let updatedPost = { ...prev } as PostWithUserAndComments;
+        // updatedPost.comments = [...(updatedPost.comments || []), res.data];
+        updatedPost.commentCount[0].count =
+          updatedPost.commentCount[0].count + 1;
+        return updatedPost;
+      });
+
+      setLoading(false);
+      // 새로운 댓글을 comments 리스트에 추가
+
       inputRef.current?.clear();
       commentRef.current = "";
     } else {
@@ -120,6 +145,7 @@ const PostDetails = () => {
         updatePost.comments = updatePost.comments?.filter(
           (comment) => comment.id !== commentId
         );
+        setPosts(updatePost);
         return updatePost;
       });
     }
@@ -210,18 +236,18 @@ const PostDetails = () => {
         </View>
 
         <View style={styles.commentList}>
-          {post?.comments.map((comment: CommentType) => (
+          {post?.comments?.map((comment: CommentType) => (
             <CommentItem
               key={comment.id}
               comment={comment}
               highlight={commentId == comment.id}
               canDelete={
-                comment.user.id === user?.id || post?.user?.id === user?.id
+                comment.user_id === user?.id || post?.user_id === user?.id
               }
               onDelete={onDeleteComment}
             />
           ))}
-          {post?.comments.length === 0 && (
+          {post?.comments?.length === 0 && (
             <Text style={styles.noComment}>첫 번째 댓글이 되어 보세요 !</Text>
           )}
         </View>

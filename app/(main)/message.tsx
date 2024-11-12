@@ -1,7 +1,6 @@
 import {
   FlatList,
   KeyboardAvoidingView,
-  KeyboardAvoidingViewComponent,
   Platform,
   StyleSheet,
   Text,
@@ -15,27 +14,28 @@ import Input from "@/components/Input";
 import Icon from "@/assets/icons";
 import { theme } from "@/constants/themes";
 import Header from "@/components/Header";
-import { MessageType, MessageTypeWithUser, UserType } from "@/types";
+import { MessageTypeWithUser, UserType } from "@/types";
 import { getUserData } from "@/service/userService";
 import Loading from "@/components/Loading";
-import { ScrollView } from "react-native";
 import MessageItem from "@/components/MessageItem";
 import { hp, wp } from "@/helpers/commons";
-import {
-  createChatRoom,
-  fetchMessages,
-  sendMessage,
-} from "@/service/MessageService";
-import { useAuth } from "@/contexts/AuthContext";
+import { fetchMessages } from "@/service/MessageService";
 import { useSocket } from "@/socket/socket";
+import useUserStore from "@/store/userStore";
 
 const Message = () => {
-  const { user: currentUser } = useAuth();
-  const { otherUserId, roomId } = useLocalSearchParams(); // 다른 유저의 정보를 볼때만 존재하는 값
+  const { user: currentUser } = useUserStore((state: any) => state);
+  const { otherUserId, roomId } = useLocalSearchParams();
   const [otherUser, setOtherUser] = useState<UserType | null>(null);
   const [messageData, setMessageData] = useState<MessageTypeWithUser[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1); // 페이지 상태 추가
+  const [hasMore, setHasMore] = useState(true); // 추가 데이터 여부 확인
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+
   const flatListRef = useRef<FlatList>(null);
 
   const { socket } = useSocket();
@@ -44,7 +44,8 @@ const Message = () => {
     if (otherUserId) {
       fetchUserData(otherUserId as string);
     }
-    getMessages();
+    getMessages(1); // 첫 페이지 로드
+    // setHasMore(true);
   }, []);
 
   useEffect(() => {
@@ -62,16 +63,47 @@ const Message = () => {
     }
   };
 
-  const getMessages = async () => {
-    let res = await fetchMessages(roomId as string);
-    if (res.success) {
-      setMessageData(res.data);
+  const getMessages = async (pageNumber = 1) => {
+    if (loading || isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    setLoading(true);
+
+    try {
+      let res = await fetchMessages(roomId as string, pageNumber);
+      if (res.success) {
+        const reversedData = res.data.reverse();
+
+        // 첫 로드가 아닐 경우에만 이전 높이 저장
+        if (!isFirstLoad && flatListRef.current) {
+          const height = flatListRef.current.getScrollableNode().scrollHeight;
+          setContentHeight(height);
+        }
+
+        setMessageData((prev) => [...reversedData, ...prev]);
+        setHasMore(res.data.length === 20);
+        setPage(pageNumber);
+
+        if (isFirstLoad) {
+          setIsFirstLoad(false);
+        }
+      }
+    } catch (error) {
+      console.error("메시지 로딩 중 에러:", error);
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadMoreMessages = () => {
+    if (!isLoadingMore && hasMore && !isFirstLoad) {
+      getMessages(page + 1);
     }
   };
 
   const onSendMessage = async () => {
     if (!message.trim()) return;
-
     socket?.emit("sendMessage", {
       userId: currentUser?.id,
       roomId: roomId,
@@ -79,18 +111,12 @@ const Message = () => {
     });
 
     setMessage("");
-
-    // let res = await sendMessage({
-    //   userId: currentUser?.id as string,
-    //   roomId: roomId as string,
-    //   message,
-    // });
-    // if (res.success) {
-    // setMessage("");
-    // }
   };
 
   if (!otherUser) return <Loading />;
+
+  // 현재의 메세지의 높이를 기억햇다가 새로운메시지가 추가되었을때 하단에서 기존의 메세지 높이만틈 스크롤을 해주게 처리하면
+  // 새로운 데이터가 추가되어도 그자리로 스트롤되는게 아닐까?
 
   return (
     <ScreenWrapper>
@@ -114,12 +140,18 @@ const Message = () => {
               <Text>메시지를 보내보세요.</Text>
             </View>
           )}
-          onContentSizeChange={() => {
-            if (messageData && messageData.length > 0) {
-              flatListRef.current?.scrollToIndex({
-                index: messageData.length - 1,
-              });
+          onContentSizeChange={(width, height) => {
+            if (!isFirstLoad) {
+              // 이전 높이와 새로운 높이의 차이만큼만 스크롤
+              const heightDiff = height - contentHeight;
+              if (heightDiff > 0) {
+                flatListRef.current?.scrollToOffset({
+                  offset: heightDiff,
+                  animated: false,
+                });
+              }
             }
+            setContentHeight(height);
           }}
           onScrollToIndexFailed={() => {
             if (messageData && messageData.length > 0) {
@@ -131,10 +163,26 @@ const Message = () => {
               });
             }
           }}
+          onStartReached={loadMoreMessages} // 스크롤 끝에 도달 시 다음 페이지 로드
+          onStartReachedThreshold={0.1} // 스크롤 위치에 따라 페이지 호출 조정
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 1,
+          }}
+          onLayout={(event) => {
+            // 초기 레이아웃 높이 저장
+            setContentHeight(event.nativeEvent.layout.height);
+          }}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={() => {
+            if (isLoadingMore) {
+              setIsLoadingMore(false);
+            }
+          }}
         />
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS와 Android의 동작 차이를 고려
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={hp(5)}
         >
           <View style={styles.inputContainer}>
