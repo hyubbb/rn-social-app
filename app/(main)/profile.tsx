@@ -50,13 +50,15 @@ const Profile = () => {
     let res = await fetchPosts(limit, userData.id);
     if (res.success) {
       // 기존의 post갯수와 새로불러온 데이터의 갯수가 같으면 더이상의 업데이트가 존재하지 않는다는 것
+      console.log(posts.length, res.data.length);
+
+      setPostStoreData(res.data);
+      setPosts(res.data);
+      // 다음 페이지를 위해 limit 증가
       if (posts.length == res.data.length || res.data.length < 15) {
         setHasMore(false);
         return;
       }
-      setPostStoreData(res.data);
-      setPosts(res.data);
-      // 다음 페이지를 위해 limit 증가
       setLimit((prev) => prev + 4);
     }
   };

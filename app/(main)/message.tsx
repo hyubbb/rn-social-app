@@ -195,6 +195,7 @@ const Message = () => {
               }}
               placeholder='메시지를 입력하세요.'
               style={styles.input}
+              onSubmitEditing={onSendMessage}
             />
             {loading ? (
               <View style={styles.loading}>

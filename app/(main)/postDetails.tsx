@@ -219,6 +219,7 @@ const PostDetails = () => {
             style={{
               flex: 1,
             }}
+            onSubmitEditing={onNewComment}
           />
           {loading ? (
             <View style={styles.loading}>

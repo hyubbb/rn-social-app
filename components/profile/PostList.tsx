@@ -75,7 +75,7 @@ const PostList = ({
             </View>
           )
         ) : (
-          <Calendar posts={posts} userId={userData.id} />
+          <Calendar posts={posts} userId={userData?.id} />
         )
       }
     />
